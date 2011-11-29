@@ -1,0 +1,56 @@
+﻿<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.0//EN" "http://www.wapforum.org/DTD/xhtml-mobile10.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml"> 
+<head> 
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8"/>
+<meta name="Robots" contect= "index,follow"> 
+<style type="text/css"><!--
+body{font-family:"Microsoft Yahei",Arial;font-size:16px;}
+.waptitle{ border:#cccccc 1px solid;background:#cccccc;color:#000;}
+div{margin:0;line-height:130%;}
+#wapbody{ max-width:472px; margin:1px auto; font-size:16px;}
+.waplist{ line-height:150%;}
+a{ color:#005eac;text-decoration:none;font-family:"Microsoft Yahei",Arial, Helvetica, sans-serif;}
+a:hover{ color:#fff;background:#005eac;text-decoration:none;}
+.button{border:#005eac 1px solid;background:#005eac;color:#FFF;}
+.footer{line-height130%;padding:0.3em 6px 0.2em 6px;}
+--></style>
+<title>{{ entry.title}}-{{ blog.title}}</title> 
+</head> 
+<body id="wapbody">
+<a href="/wap">返回首页</a>  欢迎访问{{ blog.title}}
+<a id="topanch"></a>
+<div class="waptitle">{{ entry.title}}</div>
+{{ entry.content|removetags:"pre a span li ul code img object param"}}
+<div class="waplist">
+本文的电脑版地址是：<a href="{{ entry.fullurl}}">{{ entry.fullurl}}</a>
+</div>
+{%if Comments.count%}
+<div class="waptitle">“{{ entry.title}}”的最新评论</div>
+<div class="waplist">
+{% for comment in comments %}{{comment.author}}:"{{comment.content|striptags}}" [{{comment.date|datetz:"Y-m-d H:i"}}]<br />{% endfor %}
+</div>{%endif%}
+{% if entry.allow_comment %}
+<div class="waptitle" id="respond">Leave a Reply</div>
+<div id="greeting">{{greeting}}</div>
+{%if user%}<div class="respond">
+<form id="myShopForm" action="/wap/post_comment" method="post">
+<p><input type="text" name="author" id="author" value="{{user_name}}" size="22" tabindex="1" />
+<label for="author"><small>Nick Name (required)</small></label></p>
+<p><input type="text" name="url" id="url" value="{% if user_url %}{{user_url}}{% endif %}" size="22" tabindex="2" />
+<label for="url"><small>Website</small></label></p>
+<p><textarea name="comment" id="comment" cols="40%" rows="10" tabindex="3"></textarea></p>
+<p><input name="post" type="submit"  class="button" tabindex="4" value="Submit Comment" />
+</p>
+<input type="hidden" name="key" value="{{entry.key}}" /> 
+<span id="reply_notify">
+<input name="reply_notify_mail" id="reply_notify_mail" class="round" tabindex="5"  type="checkbox" {%if not self.is_admin%} checked=“true”{% endif %}/>
+<label for="reply_notify_mail" >有回复时邮件通知我</label></span>
+</form>
+</div>{%endif%}{%endif%}
+<div class="waptitle">链接</div>
+<a href="#topanch">TOP↑</a>.<a href="/">查看电脑版</a>
+<div id="footer">
+报时: {{time|datetz:"m月d日 H:i"}}<br />&copy;2011
+</div>
+</body>
+</html>

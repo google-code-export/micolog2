@@ -1,0 +1,42 @@
+﻿<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.0//EN" "http://www.wapforum.org/DTD/xhtml-mobile10.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml"> 
+<head> 
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8"/>
+<meta name="Robots" contect= "index,follow"> 
+<style type="text/css"><!--
+body{font-family:"Microsoft Yahei",Arial;font-size:16px;}
+.title{text-align:center}
+.waptitle{ border:#cccccc 1px solid;background:#cccccc;color:#000;text-align:center;}
+div{margin:0;line-height:130%;}
+#wapbody{ max-width:472px; margin:1px auto; font-size:16px;}
+.waplist{ line-height:150%;}
+a{ color:#005eac;text-decoration:none;font-family:"Microsoft Yahei",Arial, Helvetica, sans-serif;}
+a:hover{ color:#fff;background:#005eac;text-decoration:none;}
+.clear { clear: both; } 
+.alignleft{float:left;} .alignright{float:right;}
+--></style>
+<title>{{ blog.title}}</title> 
+</head> 
+<body id="wapbody">
+<div class="title">欢迎访问{{ blog.title}}</div>
+<a id="topanch"></a>
+<div class="waptitle">最新文章</div>
+<div class="waplist">
+{% for entry in entries %}<a href="/wap/page?id={{ entry.post_id}}">{{ entry.title}}</a><br />{% endfor %}
+</div>
+<div class="waptitle">导航</div>
+<div class="box">
+<div class="alignleft">{% if show_next %}<a href="/wap/{{ pageindex|add:"1" }}">&laquo; Older Entries</a>{%endif%}</div>
+<div class="alignright">{% if show_prev %}<a href="/wap/{{ pageindex|add:"-1" }}">Newer Entries &raquo;</a>{%endif%}</div>
+<div class="clear"></div>
+</div>
+{%if comments%}
+<div class="waptitle">最新评论</div>
+<div class="waplist">
+{% for comment in comments %}{{comment.author}} :"{{comment.content|striptags}}" [{{comment.date|datetz:"m-d H:i"}}]<br />{% endfor %}
+</div>
+{%endif%}
+<div class="waptitle">链接</div>
+<a href="#topanch">TOP↑</a>  <a href="/">查看电脑版</a>
+</body>
+</html>

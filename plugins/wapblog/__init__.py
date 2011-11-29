@@ -1,0 +1,1 @@
+from wapblog import *
