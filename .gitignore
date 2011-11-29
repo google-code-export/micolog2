@@ -1,0 +1,3 @@
+#ignore all *.pyc file
+*.pyc
+.idea/*
