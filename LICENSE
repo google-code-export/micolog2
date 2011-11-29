@@ -1,9 +1,9 @@
 =====================================================================
-Micolog2, a product under GNU GPL V3, is modified from Micolog which is
-under MIT license. Code files marked with MIT license are still under
-MIT license (they are probably from Micolog without modification), others
-are under GNU GPL V3.
-Below are the licenses of MIT and GNU GPL v3 for you to reference.
+Micolog2, a blog system under GNU GPL v3, is modified from Micolog which
+is under MIT license. Code files marked with GNU GPL v3 license are under
+GPL v3 license; others, which are probably from the original Micolog,are
+under MIT license if no special license statements contained.
+Below are the licenses of GNU GPL v3 and MIT for you to reference.
 =====================================================================
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
