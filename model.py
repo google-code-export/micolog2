@@ -15,26 +15,21 @@ logging.info('module base reloaded')
 
 rootpath=os.path.dirname(__file__)
 
-#TODO: write a more powerful one
-def vcache(key="",time=3600):
+def vcache(key="",time=3600, key_parameter='cache_key'):
 	def _decorate(method):
 		def _wrapper(*args, **kwargs):
-			if not g_blog.enable_memcache:#TODO: default should be set to True
+			if not g_blog.enable_memcache:
 				return method(*args, **kwargs)
 
-			#ikey = key
-			#if 'cache' in kwargs:
-			#	ikey = ikey+'_'+kwargs['cache']
-			#del kwargs['cache']
+			ikey = key
+			if key_parameter in kwargs:
+				ikey = ikey+'_'+kwargs[key_parameter]
+			del kwargs[key_parameter]
             
-			#for kna in key_name_args:
-			#	ikey=ikey+'_'+str(kwargs[kna])
-			#result = memcache.get(ikey)
 			result = memcache.get(key)
 			if result is None:
 				result = method(*args, **kwargs)
-				#memcache.set(ikey,result,time)
-				memcache.set(key,result,time)
+				memcache.set(ikey,result,time)
 			return result
 
 		return _wrapper
@@ -169,7 +164,7 @@ class Blog(db.Model):
 	feedurl = db.StringProperty(multiline=False,default='/feed')
 	blogversion = db.StringProperty(multiline=False,default='0.30')
 	theme_name = db.StringProperty(multiline=False,default='default')
-	enable_memcache = db.BooleanProperty(default = True)#TODO: why False?
+	enable_memcache = db.BooleanProperty(default = True)
 	link_format=db.StringProperty(multiline=False,default='%(year)s/%(month)s/%(day)s/%(postname)s.html')
 	comment_notify_mail=db.BooleanProperty(default=True)
 	#评论顺序
