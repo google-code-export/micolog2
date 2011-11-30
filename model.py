@@ -437,7 +437,6 @@ class Entry(BaseModel):
 	def content_excerpt(self):
 		return self.get_content_excerpt(_('..more').decode('utf8'))
 
-
 	def get_author_user(self):
 		if not self.author:
 			self.author=g_blog.owner
@@ -476,13 +475,11 @@ class Entry(BaseModel):
 			else:
 				self.postname=""
 
-
-
-
 	@property
 	def fullurl(self):
 		return g_blog.baseurl+'/'+self.link;
 
+	#TODO: 没看懂，需要调试
 	@property
 	def categories(self):
 		try:
@@ -499,9 +496,7 @@ class Entry(BaseModel):
 		if type(values)==type([]):
 			tags=values
 		else:
-			tags=values.split(',')
-
-
+			tags=[tag.strip() for tag in values.split(',')]
 
 		if not self.tags:
 			removelist=[]
@@ -548,6 +543,7 @@ class Entry(BaseModel):
 			return Comment.all().filter('entry =',self).filter('ctype IN',[1,2]).order('-date')
 		else:
 			return Comment.all().filter('entry =',self).filter('ctype IN',[1,2]).order('date')
+
 	def commentsTops(self):
 		return [c for c  in self.purecomments() if c.parent_key()==None]
 
@@ -557,6 +553,7 @@ class Entry(BaseModel):
 			comment.delete()
 		self.commentcount = 0
 		self.trackbackcount = 0
+
 	def update_commentno(self):
 		cmts = Comment.all().filter('entry =',self).order('date')
 		i=1
@@ -585,7 +582,6 @@ class Entry(BaseModel):
 				archive.put()
 		g_blog.entrycount+=cnt
 		g_blog.put()
-
 
 	def save(self,is_publish=False):
 		"""
@@ -644,9 +640,6 @@ class Entry(BaseModel):
 		self.put()
 		g_blog.tigger_action("save_post",self,is_publish)
 
-
-
-
 	def removecache(self):
 		memcache.delete('/')
 		memcache.delete('/'+self.link)
@@ -657,7 +650,6 @@ class Entry(BaseModel):
 	@property
 	def next(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('date').filter('date >',self.date).fetch(1)
-
 
 	@property
 	def prev(self):
