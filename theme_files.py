@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
-import os,stat
-import sys
-import logging
+import stat,sys
 import wsgiref.handlers
 from mimetypes import types_map
-from datetime import datetime, timedelta
-from google.appengine.ext import webapp
+from datetime import timedelta
 from google.appengine.ext.webapp import template
-from google.appengine.api import memcache
 from google.appengine.ext.zipserve import *
 sys.path.append('modules')
 from model import *
@@ -24,12 +20,9 @@ def Error404(handler):
 	html = template.render(os.path.join(cwd,'views/404.html'), {'error':404})
 	handler.response.out.write(html)
 
-
 class GetFile(webapp.RequestHandler):
 	def get(self,prefix,name):
 		request_path = self.request.path[8:]
-
-
 		server_path = os.path.normpath(os.path.join(cwd, 'themes', request_path))
 		try:
 			fstat=os.stat(server_path)

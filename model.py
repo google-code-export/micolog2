@@ -66,7 +66,6 @@ class Theme:
 			self.mapping_cache[name]=path
 			return path
 
-
 class ThemeIterator:
 	def __init__(self, theme_path='themes'):
 		self.iterating = False
@@ -262,7 +261,6 @@ class Blog(db.Model):
 	def postscount(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-date').count()
 
-
 class Category(db.Model):
 	uid=db.IntegerProperty()
 	name=db.StringProperty(multiline=False)
@@ -370,8 +368,6 @@ class Tag(db.Model):
 				else:
 					tag.delete()
 
-
-
 class Link(db.Model):
 	href = db.StringProperty(multiline=False,default='')
 	linktype = db.StringProperty(multiline=False,default='blogroll')
@@ -433,7 +429,6 @@ class Entry(BaseModel):
 
 	#keep in top
 	sticky=db.BooleanProperty(default=False)
-
 
 	postname=''
 	_relatepost=None
@@ -710,7 +705,6 @@ class Entry(BaseModel):
 		db.Model.delete(self)
 		g_blog.tigger_action("delete_post",self)
 
-
 class User(db.Model):
 	user = db.UserProperty(required = False)
 	dispname = db.StringProperty()
@@ -790,8 +784,6 @@ class Comment(db.Model):
 			return default
 
 	def save(self):
-
-
 		self.put()
 		self.entry.commentcount+=1
 		self.comment_order=self.entry.commentcount
@@ -821,6 +813,7 @@ class Comment(db.Model):
 		db.Model.delete(self)
 		g_blog.tigger_action("delete_comment",self)
 
+	#TODO: understand and test
 	@property
 	def children(self):
 		key=self.key()
@@ -843,13 +836,9 @@ class Media(db.Model):
 	def size(self):
 		return len(self.bits)
 
-
-
 class OptionSet(db.Model):
 	name=db.StringProperty()
 	value=db.TextProperty()
-	#blobValue=db.BlobProperty()
-	#isBlob=db.BooleanProperty()
 
 	@classmethod
 	def getValue(cls,name,default=None):
@@ -875,7 +864,6 @@ class OptionSet(db.Model):
 NOTIFICATION_SITES = [
   ('http', 'www.google.com', 'webmasters/sitemaps/ping', {}, '', 'sitemap')
   ]
-
 
 def Sitemap_NotifySearch():
 	""" Send notification of the new Sitemap(s) to the search engines. """
@@ -925,9 +913,9 @@ def InitBlogData():
 	g_blog.save()
 
 	entry=Entry(title=_("Hello world!").decode('utf8'))
-	entry.content=_('<p>Welcome to micolog. This is your first post. Edit or delete it, then start blogging!</p>').decode('utf8')
+	entry.content=_('<p>Welcome to Micolog2. This is your first post. Edit or delete it, then start blogging!</p>').decode('utf8')
 	entry.save(True)
-	link=Link(href='http://xuming.net',linktext=_("Xuming's blog").decode('utf8'))
+	link=Link(href='http://blog.rexzhao.net',linktext=_("Rex's blog").decode('utf8'))
 	link.put()
 	return g_blog
 
@@ -942,7 +930,6 @@ def gblog_init():
 	if not g_blog:
 		g_blog=InitBlogData()
 
-
 	g_blog.get_theme()
 	g_blog.rootdir=os.path.dirname(__file__)
 	return g_blog
@@ -951,7 +938,7 @@ try:
 	g_blog=gblog_init()
 
 	os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
-	from django.utils.translation import  activate
+	from django.utils.translation import activate
 	from django.conf import settings
 	settings._target = None
 	activate(g_blog.language)
