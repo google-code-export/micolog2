@@ -169,7 +169,7 @@ class Blog(db.Model):
 	feedurl = db.StringProperty(multiline=False,default='/feed')
 	blogversion = db.StringProperty(multiline=False,default='0.30')
 	theme_name = db.StringProperty(multiline=False,default='default')
-	enable_memcache = db.BooleanProperty(default = False)#TODO: why False?
+	enable_memcache = db.BooleanProperty(default = True)#TODO: why False?
 	link_format=db.StringProperty(multiline=False,default='%(year)s/%(month)s/%(day)s/%(postname)s.html')
 	comment_notify_mail=db.BooleanProperty(default=True)
 	#评论顺序
