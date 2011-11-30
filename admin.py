@@ -1,12 +1,27 @@
 # -*- coding: utf-8 -*-
-import os
+import cgi, os,sys,traceback,logging
 import wsgiref.handlers
-
+##os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+##from django.conf import settings
+##settings._target = None
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+from django.utils.translation import check_for_language, activate, to_locale, get_language
 from django.conf import settings
 settings._target = None
 
+from google.appengine.ext.webapp import template, \
+	WSGIApplication
+from google.appengine.api import users
+#import app.webapp as webapp2
+from google.appengine.ext import db
+from google.appengine.ext import zipserve
+from google.appengine.api import urlfetch
+from google.appengine.api import memcache
+from google.appengine.api.labs import taskqueue
+from datetime import datetime ,timedelta
+import base64,random,math,zipfile
 from django.utils import simplejson
+import pickle
 from base import *
 from model import *
 
