@@ -96,7 +96,6 @@ class Plugins:
 			if item.active and item._handlerlist:
 				self.add_urlhandler(item,application)
 
-
 	def reload(self):
 		pass
 
@@ -151,7 +150,6 @@ class Plugins:
 					self.remove_urlhandler(plugin,self.blog.application)
 		self._urlmap={}
 		self._setupmenu=[]
-
 
 	def filter(self,attr,value):
 		rlist=[]
@@ -220,8 +218,6 @@ class Plugins:
 		else:
 			return {}
 
-
-
 	def tigger_filter(self,name,content,*arg1,**arg2):
 		for func in self.get_filter_plugins(name):
 			content=func(content,*arg1,**arg2)
@@ -273,7 +269,6 @@ class Plugin:
 	def register_filter(self,name,func):
 		self._filter[name]=func
 
-
 	def register_action(self,name,func):
 		self._action[name]=func
 
@@ -291,7 +286,6 @@ class Plugin:
 		#Add menu to admin setup page.
 		#m_id is a flag to check current page
 		self._setupmenu.append({'m_id':m_id,'title':title,'url':url})
-
 
 class Plugin_importbase(Plugin):
 	def __init__(self,pfile,name,description=""):

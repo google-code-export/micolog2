@@ -27,14 +27,12 @@ from app.gmemsess import Session
 from base import *
 from model import *
 
-
 ##os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 ##from django.utils.translation import  activate
 ##from django.conf import settings
 ##settings._target = None
 ##activate(g_blog.language)
 from google.appengine.ext import zipserve
-
 
 def doRequestHandle(old_handler,new_handler,**args):
 		new_handler.initialize(old_handler.request,old_handler.response)
@@ -44,6 +42,7 @@ def doRequestPostHandle(old_handler,new_handler,**args):
 		new_handler.initialize(old_handler.request,old_handler.response)
 		return  new_handler.post(**args)
 
+#TODO: change this
 @vcache(key='Rex_m_pages',time=86400)
 def _get_m_pages():
 	return Entry.all().filter('entrytype =','page')\
@@ -51,22 +50,27 @@ def _get_m_pages():
 			.filter('entry_parent =',0)\
 			.order('menu_order')
 
+#TODO: change this
 @vcache(key='Rex_links',time=86400)
 def _get_links():
 	return Link.all().filter('linktype =','blogroll')
 
+#TODO: change this
 @vcache(key='Rex_archives',time=86400)
 def _get_archives():
 	return Archive.all().order('-year').order('-month').fetch(12)
 
+#TODO: change this
 @vcache(key='Rex_tags',time=86400)
 def _get_tags():
 	return Tag.all()
 
+#TODO: change this
 @vcache(key='Rex_categories',time=86400)
 def _get_categories():
 	return Category.all()
 
+#TODO: change this
 @vcache(key='Rex_recent_comments', time=3600)
 def _get_recent_comments():
 	return Comment.all().order('-date').fetch(5)
@@ -107,6 +111,7 @@ class BasePublicPage(BaseRequestHandler):
 				ret+='<li class="%s"><a href="/%s" target="%s">%s</a></li>'%( current,page.link, page.target,page.title)
 		return ret
 
+	#TODO: change this
 	@vcache(key='Rex_sticky_entries',time=86400)
 	def sticky_entrys(self):
 		return Entry.all().filter('entrytype =','post')\
@@ -114,6 +119,7 @@ class BasePublicPage(BaseRequestHandler):
 			.filter('sticky =',True)\
 			.order('-date')
 
+#TODO: add cache
 class MainPage(BasePublicPage):
 	def get(self,page=1):
 		postid=self.param('p')
@@ -163,10 +169,12 @@ class MainPage(BasePublicPage):
 						'postscounts':entrycount
 							})
 
+#TODO: change this
 @vcache(key="Rex_get_category_pcount",time=86400,key_name_args=['category_key'])
 def _get_category_post_count(category_key):
 	return Entry.all().filter("published =", True).filter('categorie_keys =',category_key).count()
-    
+
+#TODO: change this
 class entriesByCategory(BasePublicPage):
 	@cache(key='Rex_entriesByCategory',time=86400)
 	def get(self,slug=None):
@@ -192,6 +200,7 @@ class entriesByCategory(BasePublicPage):
 		else:
 			self.error(414,slug)
 
+#TODO: change this
 class archive_by_month(BasePublicPage):
 	@cache(key='Rex_archive_by_month2', time=86400)
 	def get(self,year,month):
@@ -211,13 +220,13 @@ class archive_by_month(BasePublicPage):
 
 		self.render('month',{'entries':entries,'year':year,'month':month,'pager':links})
 
+#TODO: change this
 class entriesByTag(BasePublicPage):
 	@cache() #TODO:should implement?
 	def get(self,slug=None):
 		self.error(404)
 
-
-
+#TODO: change this
 class SinglePost(BasePublicPage):
 	def head(self,slug=None,postid=None):
 		if g_blog.allow_pingback :
@@ -414,6 +423,7 @@ class SinglePost(BasePublicPage):
 		else:
 			return "/"+url+"?mp="+str(pindex)+"#comments"
 
+#TODO: change this
 class FeedHandler(BaseRequestHandler):
 	@cache(time=600)
 	def get(self,tags=None):
@@ -426,6 +436,7 @@ class FeedHandler(BaseRequestHandler):
 		self.response.headers['Content-Type'] = 'application/rss+xml'
 		self.render2('views/rss.xml',{'entries':entries,'last_updated':last_updated})
 
+#TODO: change this
 class CommentsFeedHandler(BaseRequestHandler):
 	@cache(time=600)
 	def get(self,tags=None):
@@ -438,6 +449,7 @@ class CommentsFeedHandler(BaseRequestHandler):
 		self.response.headers['Content-Type'] = 'application/rss+xml'
 		self.render2('views/comments.xml',{'comments':comments,'last_updated':last_updated})
 
+#TODO: change this
 class SitemapHandler(BaseRequestHandler):
 	@cache(time=36000)
 	def get(self,tags=None):
@@ -475,12 +487,13 @@ class SitemapHandler(BaseRequestHandler):
 ##		self.response.headers['Content-Type'] = 'application/atom+xml'
 		self.render2('views/sitemap.xml',{'urlset':urls})
 
-
+#TODO: change this
 class Error404(BaseRequestHandler):
 	@cache(time=36000)
 	def get(self,slug=None):
 		self.error(404)
 
+#TODO: change this
 class Post_comment(BaseRequestHandler):
 	#@printinfo
 	def post(self,slug=None):
@@ -603,7 +616,7 @@ class Post_comment(BaseRequestHandler):
 				else:
 					self.error(-102,_('Comment not allowed .'))
 
-
+#TODO: change this
 class ChangeTheme(BaseRequestHandler):
 	@requires_admin
 	def get(self,slug=None):
@@ -612,10 +625,9 @@ class ChangeTheme(BaseRequestHandler):
 	   g_blog.get_theme()
 	   self.redirect('/')
 
-
+#TODO: change this
 class do_action(BaseRequestHandler):
 	def get(self,slug=None):
-
 		try:
 			func=getattr(self,'action_'+slug)
 			if func and callable(func):
@@ -684,7 +696,7 @@ class do_action(BaseRequestHandler):
 		self.write(settings.LANGUAGE_CODE)
 		self.write(_("this is a test"))
 
-
+#TODO: change this
 class getMedia(webapp.RequestHandler):
 	def get(self,slug):
 		media=Media.get(slug)
@@ -698,8 +710,7 @@ class getMedia(webapp.RequestHandler):
 				media.download+=1
 				media.put()
 
-
-
+#TODO: change this
 class CheckImg(BaseRequestHandler):
 	def get(self):
 		img = Image()
@@ -713,7 +724,7 @@ class CheckImg(BaseRequestHandler):
 		self.response.headers['Content-Type'] = "image/png"
 		self.response.out.write(imgdata)
 
-
+#TODO: change this
 class CheckCode(BaseRequestHandler):
 	def get(self):
 		sess=Session(self,timeout=900)
@@ -725,6 +736,7 @@ class CheckCode(BaseRequestHandler):
 		#self.response.headers['Content-Type'] = "text/html"
 		self.response.out.write(code)
 
+#TODO: change this
 class Other(BaseRequestHandler):
 	def get(self,slug=None):
 		if not g_blog.tigger_urlmap(slug,page=self):

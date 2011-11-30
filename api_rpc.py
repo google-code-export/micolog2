@@ -17,6 +17,8 @@ from micolog_plugin import *
 from urlparse import urlparse
 MAX_NUM=100
 
+#TODO change the rpc code later
+
 def checkauth(pos=1):
 	def _decorate(method):
 		def _wrapper(*args, **kwargs):
@@ -52,7 +54,6 @@ def post_struct(entry):
 	if entry.categorie_keys:
 		categories =[cate.name for cate in  entry.categories]
 
-
 	struct = {
 		'postid': entry.key().id(),
 		'title': entry.title,
@@ -87,7 +88,6 @@ def page_struct(entry):
 	categories=[]
 	if entry.categorie_keys:
 		categories =[cate.name for cate in  entry.categories]
-
 
 	struct = {
 		'page_id': entry.key().id(),
@@ -214,7 +214,6 @@ def metaWeblog_newPost(blogid, struct, publish):
 
 	if struct.has_key('sticky'):
 		entry.sticky=struct['sticky']
-
 
 	if struct.has_key('wp_author_id'):
 		author=User.get_by_id(int(struct['wp_author_id']))

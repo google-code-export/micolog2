@@ -24,7 +24,6 @@ import urllib
 import traceback
 import micolog_template
 
-
 logging.info('module base reloaded')
 def urldecode(value):
 	return  urllib.unquote(urllib.unquote(value)).decode('utf8')
@@ -36,7 +35,6 @@ def urlencode(value):
 def sid():
 	now=datetime.datetime.now()
 	return now.strftime('%y%m%d%H%M%S')+str(now.microsecond)
-
 
 def requires_admin(method):
 	@wraps(method)
@@ -60,6 +58,7 @@ def printinfo(method):
 			print x
 		return method(self, *args, **kwargs)
 	return wrapper
+
 #only ajax methed allowed
 def ajaxonly(method):
 	@wraps(method)
@@ -83,6 +82,7 @@ def hostonly(method):
 def format_date(dt):
 	return dt.strftime('%a, %d %b %Y %H:%M:%S GMT')
 
+#seems only can be used on requests
 def cache(key="",time=3600):
 	def _decorate(method):
 		def _wrapper(*args, **kwargs):
@@ -186,10 +186,7 @@ class util:
 		taskqueue.add(url='/admin/do/pingback_ping',
 			params={'source': source_uri,'target':target_uri})
 
-
-
-##cache variable
-
+#TODO confirm if this would be costy
 class Pager(object):
 
 	def __init__(self, model=None,query=None, items_per_page=10):
@@ -217,21 +214,15 @@ class Pager(object):
 		else:
 			results = self.query[offset:offset+self.items_per_page]
 
-
-
 		links = {'count':max_offset,'page_index':p,'prev': p - 1, 'next': p + 1, 'last': n}
 		if links['next'] > n:
 			links['next'] = 0
 
 		return (results, links)
 
-
 class BaseRequestHandler(webapp.RequestHandler):
 	def __init__(self):
 		self.current='home'
-
-##	def head(self, *args):
-##		return self.get(*args)
 
 	def initialize(self, request, response):
 		webapp.RequestHandler.initialize(self, request, response)
@@ -266,8 +257,6 @@ class BaseRequestHandler(webapp.RequestHandler):
 		except:
 			self.referer = None
 
-
-
 		self.template_vals = {'self':self,'blog':self.blog,'current':self.current}
 
 	def __before__(self,*args):
@@ -287,14 +276,8 @@ class BaseRequestHandler(webapp.RequestHandler):
 		message+="<p><pre>"+traceback.format_exc()+"</pre><br></p>"
 		self.template_vals.update( {'errorcode':errorcode,'message':message})
 
-
-
-
-
-
 		if errorcode>0:
 			self.response.set_status(errorcode)
-
 
 		#errorfile=getattr(self.blog.theme,'error'+str(errorcode))
 		#logging.debug(errorfile)
@@ -348,7 +331,6 @@ class BaseRequestHandler(webapp.RequestHandler):
 		path = os.path.join(self.blog.rootdir, template_file)
 		self.response.out.write(template.render(path, self.template_vals))
 
-
 	def param(self, name, **kw):
 		return self.request.get(name, **kw)
 
@@ -364,11 +346,8 @@ class BaseRequestHandler(webapp.RequestHandler):
 		except:
 		   return default
 
-
 	def write(self, s):
 		self.response.out.write(s)
-
-
 
 	def chk_login(self, redirect_url='/'):
 		if self.is_login:

@@ -136,8 +136,8 @@ msgid "Hello world!"
 msgstr "Ciao Mondo!"
 
 #: .\model.py:746
-msgid "<p>Welcome to micolog. This is your first post. Edit or delete it, then start blogging!</p>"
-msgstr "<p>Benvenuto a micolog. Questo è il tuo primo post. Modificalo o eliminalo, poi comincia a bloggare!</p>"
+msgid "<p>Welcome to micolog2. This is your first post. Edit or delete it, then start blogging!</p>"
+msgstr "<p>Benvenuto a micolog2. Questo è il tuo primo post. Modificalo o eliminalo, poi comincia a bloggare!</p>"
 
 #: .\model.py:749
 msgid "Xuming's blog"
