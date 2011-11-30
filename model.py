@@ -15,23 +15,26 @@ logging.info('module base reloaded')
 
 rootpath=os.path.dirname(__file__)
 
-def vcache(key="",time=3600, key_name_args=[]):
+#TODO: write a more powerful one
+def vcache(key="",time=3600):
 	def _decorate(method):
 		def _wrapper(*args, **kwargs):
-			if not g_blog.enable_memcache:
+			if not g_blog.enable_memcache:#TODO: default should be set to True
 				return method(*args, **kwargs)
 
-			ikey = key
-			if 'cache' in kwargs:
-				ikey = ikey+'_'+kwargs['cache']
-			del kwargs['cache']
+			#ikey = key
+			#if 'cache' in kwargs:
+			#	ikey = ikey+'_'+kwargs['cache']
+			#del kwargs['cache']
             
-			for kna in key_name_args:
-				ikey=ikey+'_'+str(kwargs[kna])
-			result = memcache.get(ikey)
+			#for kna in key_name_args:
+			#	ikey=ikey+'_'+str(kwargs[kna])
+			#result = memcache.get(ikey)
+			result = memcache.get(key)
 			if result is None:
 				result = method(*args, **kwargs)
-				memcache.set(ikey,result,time)
+				#memcache.set(ikey,result,time)
+				memcache.set(key,result,time)
 			return result
 
 		return _wrapper
@@ -59,10 +62,6 @@ class Theme:
 
 			path ="/".join((self.name,'templates', name + '.html'))
 			logging.debug('path:%s'%path)
-##			if not os.path.exists(path):
-##				path = os.path.join(rootpath, 'themes', 'default', 'templates', name + '.html')
-##				if not os.path.exists(path):
-##					path = None
 			self.mapping_cache[name]=path
 			return path
 
@@ -150,6 +149,7 @@ class BaseModel(db.Model):
 
 		DBModel.__setattr__(self,attrname,value)
 
+#TODO: why make Cache a model?
 class Cache(db.Model):
 	cachekey = db.StringProperty(multiline=False)
 	content = db.TextProperty()
@@ -164,12 +164,12 @@ class Blog(db.Model):
 	urlpath = db.StringProperty(multiline=False)
 	title = db.StringProperty(multiline=False,default='Micolog')
 	subtitle = db.StringProperty(multiline=False,default='This is a micro blog.')
-	entrycount = db.IntegerProperty(default=0)
+	entrycount = db.IntegerProperty(default=0)#TODO: seems to be the right place?
 	posts_per_page= db.IntegerProperty(default=10)
 	feedurl = db.StringProperty(multiline=False,default='/feed')
 	blogversion = db.StringProperty(multiline=False,default='0.30')
 	theme_name = db.StringProperty(multiline=False,default='default')
-	enable_memcache = db.BooleanProperty(default = False)
+	enable_memcache = db.BooleanProperty(default = False)#TODO: why False?
 	link_format=db.StringProperty(multiline=False,default='%(year)s/%(month)s/%(day)s/%(postname)s.html')
 	comment_notify_mail=db.BooleanProperty(default=True)
 	#评论顺序
@@ -185,8 +185,8 @@ class Blog(db.Model):
 
 	domain=db.StringProperty()
 	show_excerpt=db.BooleanProperty(default=True)
-	version=0.74
-	timedelta=db.FloatProperty(default=8.0)# hours
+	version=0.1 #Micolog2's version number
+	timedelta=db.FloatProperty(default=8.0)# hours #TODO: what does this for?
 	language=db.StringProperty(default="en-us")
 
 	sitemap_entries=db.IntegerProperty(default=30)
@@ -202,9 +202,6 @@ class Blog(db.Model):
 	theme=None
 	langs=None
 	application=None
-
-
-
 
 	def __init__(self,
 			   parent=None,
@@ -257,6 +254,7 @@ class Blog(db.Model):
 	def recentposts(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-date').fetch(8)
 
+	#TODO: rewrite this
 	@vcache("blog.postscount")
 	def postscount(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-date').count()
@@ -270,6 +268,7 @@ class Category(db.Model):
 	def posts(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).filter('categorie_keys =',self)
 
+	#TODO: rewrite this function
 	@property
 	def count(self):
 		return self.posts.count()
@@ -324,7 +323,7 @@ class Category(db.Model):
 		key=self.key()
 		return [c for c in Category.all().filter('parent_cat =',self)]
 
-
+	#TODO: cache this result
 	@classmethod
 	def allTops(self):
 		return [c for c in Category.all() if not c.parent_cat]
@@ -339,6 +338,8 @@ class Archive(db.Model):
 class Tag(db.Model):
 	tag = db.StringProperty(multiline=False)
 	tagcount = db.IntegerProperty(default=0)
+
+	#TODO: don't understand
 	@property
 	def posts(self):
 		return Entry.all('entrytype =','post').filter("published =", True).filter('tags =',self)
@@ -351,7 +352,7 @@ class Tag(db.Model):
 				tag=Tag(key_name=value)
 				tag.tag=value
 
-			tag.tagcount+=1
+			tag.tagcount+=1 #TODO: seems to be a bug
 			tag.put()
 			return tag
 		else:
