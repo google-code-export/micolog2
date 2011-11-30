@@ -511,7 +511,7 @@ class Entry(BaseModel):
 			Tag.add(v)
 		self.tags=tags
 
-	@vcache(key='Rex_comments_page',time=3600,key_name_args=['index','psize'])
+	#TODO: add cache
 	def get_comments_by_page(self,index,psize):
 		if g_blog.comments_order:
 			return Comment.all().filter('entry =',self).order('-date').fetch(psize,offset = (index-1) * psize)
@@ -526,24 +526,28 @@ class Entry(BaseModel):
 	def edit_url(self):
 		return '/admin/%s?key=%s&action=edit'%(self.entrytype,self.key())
 
+	#TODO: check returen type
 	def comments(self):
 		if g_blog.comments_order:
 			return Comment.all().filter('entry =',self).order('-date')
 		else:
 			return Comment.all().filter('entry =',self).order('date')
 
+	#TODO: check returen type
 	def purecomments(self):
 		if g_blog.comments_order:
 			return Comment.all().filter('entry =',self).filter('ctype =',0).order('-date')
 		else:
 			return Comment.all().filter('entry =',self).filter('ctype =',0).order('date')
 
+	#TODO: check returen type
 	def trackcomments(self):
 		if g_blog.comments_order:
 			return Comment.all().filter('entry =',self).filter('ctype IN',[1,2]).order('-date')
 		else:
 			return Comment.all().filter('entry =',self).filter('ctype IN',[1,2]).order('date')
 
+	#TODO: check returen type, rewrite this if possible
 	def commentsTops(self):
 		return [c for c  in self.purecomments() if c.parent_key()==None]
 
@@ -568,7 +572,6 @@ class Entry(BaseModel):
 		my = self.date.strftime('%B %Y') # September-2008
 		sy = self.date.strftime('%Y') #2008
 		sm = self.date.strftime('%m') #09
-
 
 		archive = Archive.all().filter('monthyear',my).get()
 		if self.entrytype == 'post':
@@ -602,7 +605,6 @@ class Entry(BaseModel):
 			#fix for old version
 			if not self.postname:
 				self.setpostname(self.slug)
-
 
 			vals={'year':self.date.year,'month':str(self.date.month).zfill(2),'day':self.date.day,
 				'postname':self.postname,'post_id':self.post_id}
@@ -655,6 +657,7 @@ class Entry(BaseModel):
 	def prev(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-date').filter('date <',self.date).fetch(1)
 
+	#TODO, rewirte this if necessary
 	@property
 	def relateposts(self):
 		if  self._relatepost:
@@ -689,6 +692,7 @@ class Entry(BaseModel):
 	def getbylink(self):
 		pass
 
+	#TODO:add update for count
 	def delete(self):
 		g_blog.tigger_action("pre_delete_post",self)
 		if self.published:
