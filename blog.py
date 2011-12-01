@@ -164,9 +164,15 @@ def __get_category_post_count(category_key, cache_postfix):
 def _get_category_post_count(category_key):
 	return __get_category_post_count(category_key,str(category_key))
 
-#TODO: change this
+@object_cache(key='get_entries_by_category',time=3600*24, check_db=True, key_parameter='cache_postfix')
+def __get_entries_by_category(categories_keys, offset, fetch_n, cache_postfix):
+	return Entry.all().filter("published =", True).filter('categorie_keys =',categories_keys).order("-date").fetch(fetch_n,offset)
+	
+def _get_entries_by_category(categories_keys, offset, fetch_n=20):
+	return __get_entries_by_category(categories_keys,offset,fetch_n,cache_postfix=str(categories_keys)+'_'+str(offset)+'_'+str(fetch_n))
+
 class entriesByCategory(BasePublicPage):
-	@request_cache(time=86400)
+	@request_cache(time=3600*24, check_db=True)
 	def get(self,slug=None):
 		if not slug:
 			self.error(404)
@@ -180,7 +186,7 @@ class entriesByCategory(BasePublicPage):
 		cats=Category.all().filter('slug =',slug).fetch(1)
 		cat_key = cats[0].key()
 		if cats:
-			entries=Entry.all().filter("published =", True).filter('categorie_keys =',cat_key).order("-date").fetch(20,(page_index-1)*20)
+			entries=_get_entries_by_category(cat_key,(page_index-1)*20,20)
 			max_offset = _get_category_post_count(cat_key)
 			n = max_offset/20
 			links = {'count':max_offset,'page_index':page_index,'prev': page_index - 1, 'next': page_index + 1, 'last': n}
