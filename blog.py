@@ -215,9 +215,7 @@ class archive_by_month(BasePublicPage):
 		else:
 			lastday=datetime(int(year)+1,1,1)
 		entries=db.GqlQuery("SELECT * FROM Entry WHERE date > :1 AND date <:2 AND entrytype =:3 AND published = True ORDER BY date DESC",firstday,lastday,'post')
-        #TODO: need improve
-		entries,links=Pager(query=entries).fetch(page_index)
-
+		entries,links=Pager(query=entries).fetch(page_index,cache_postfix='archive_by_month_'+str(year)+'_'+str(month))
 		self.render('month',{'entries':entries,'year':year,'month':month,'pager':links})
 
 #TODO: change this
