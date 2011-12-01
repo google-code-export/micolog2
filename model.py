@@ -1,4 +1,10 @@
 ﻿# -*- coding: utf-8 -*-
+###################################################
+#this file is under GPL v3 license
+#Originally taken from Micolog
+#Modified by Rex to reduce data store operations
+##################################################
+
 import os,logging
 from google.appengine.api import users
 from google.appengine.ext import db
@@ -7,7 +13,7 @@ from google.appengine.api import memcache
 from google.appengine.api import mail
 from google.appengine.api import urlfetch
 from google.appengine.api import datastore
-from datetime import datetime
+from datetime import datetime,timedelta
 import urllib, hashlib,urlparse
 import zipfile,re,pickle,uuid
 #from base import *
@@ -15,21 +21,42 @@ logging.info('module base reloaded')
 
 rootpath=os.path.dirname(__file__)
 
-def vcache(key="",time=3600, key_parameter='cache_key'):
+class DBCache(db.Model):
+	key = db.StringProperty(multiline=False)
+	content = db.TextProperty()
+	time_stamp = db.DateTimeProperty(auto_now=True)
+
+def unicode_cache(key="",time=3600, check_db = False, key_parameter='cache_key'):
+	'''
+	method return value should be unicode
+	'''
 	def _decorate(method):
 		def _wrapper(*args, **kwargs):
-			if not g_blog.enable_memcache:
-				return method(*args, **kwargs)
-
 			ikey = key
 			if key_parameter in kwargs:
 				ikey = ikey+'_'+kwargs[key_parameter]
-			del kwargs[key_parameter]
-            
-			result = memcache.get(key)
-			if result is None:
-				result = method(*args, **kwargs)
+				del kwargs[key_parameter]
+
+			if g_blog.enable_memcache:
+				result = memcache.get(key)
+			else:
+				result = None
+
+			if result is not None:
+				return result
+				
+			if check_db:
+				db_cache = DBCache.all().filter("key =",ikey).get()
+				if db_cache is not None and db_cache.time_stamp + timedelta(seconds = time) > datetime.now():
+					return unicode(db_cache.content)
+
+			result = method(*args, **kwargs)
+			if check_db:
+				DBCache(key=ikey,content=db.Text(unicode(result))).put()
+
+			if g_blog.enable_memcache:
 				memcache.set(ikey,result,time)
+
 			return result
 
 		return _wrapper
@@ -144,11 +171,6 @@ class BaseModel(db.Model):
 
 		DBModel.__setattr__(self,attrname,value)
 
-#TODO: why make Cache a model?
-class Cache(db.Model):
-	cachekey = db.StringProperty(multiline=False)
-	content = db.TextProperty()
-
 class Blog(db.Model):
 	owner = db.UserProperty()
 	author=db.StringProperty(default='admin')
@@ -241,16 +263,16 @@ class Blog(db.Model):
 	def rootpath(self):
 		return rootpath
 
-	@vcache("blog.hotposts")
+	@unicode_cache("blog.hotposts")
 	def hotposts(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-readtimes').fetch(8)
 
-	@vcache("blog.recentposts")
+	@unicode_cache("blog.recentposts")
 	def recentposts(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-date').fetch(8)
 
 	#TODO: rewrite this
-	@vcache("blog.postscount")
+	@unicode_cache("blog.postscount")
 	def postscount(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-date').count()
 
