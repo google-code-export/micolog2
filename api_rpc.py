@@ -87,12 +87,15 @@ def _post_struct(entry, cache_postfix):
 	return struct
 
 def post_struct(entry):
-	return _post_struct(entry,entry.fullurl)
+	if not entry:
+		 raise Fault(404, "Post does not exist")
+	else:
+		return _post_struct(entry,entry.fullurl)
 
 @object_cache(key='post_struct',time=3600*24,check_db=True)
 def _page_struct(entry, cache_postfix):
 	if not entry:
-		 raise Fault(404, "Post does not exist")
+		 raise Fault(404, "Page does not exist")
 	categories=[]
 	if entry.categorie_keys:
 		categories =[cate.name for cate in  entry.categories]
@@ -128,7 +131,10 @@ def _page_struct(entry, cache_postfix):
 	return struct
 
 def page_struct(entry):
-	return _page_struct(entry,entry.fullurl)
+	if not entry:
+		 raise Fault(404, "Page does not exist")
+	else:
+		return _page_struct(entry,entry.fullurl)
 
 def entry_title_struct(entry):
 	if not entry:
