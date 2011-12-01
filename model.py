@@ -262,11 +262,11 @@ class Blog(db.Model):
 	def rootpath(self):
 		return rootpath
 
-	@object_cache(key='blog.hotposts',time=36000,check_db=True)
+	@object_cache(key='blog.hotposts',time=3600*24,check_db=True)
 	def hotposts(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-readtimes').fetch(8)
 
-	@object_cache(key="blog.recentposts",time=7200,check_db=True)
+	@object_cache(key="blog.recentposts",time=3600*24,check_db=True)
 	def recentposts(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-date').fetch(8)
 
