@@ -86,19 +86,25 @@ def format_date(dt):
 
 import marshal
 from model import DBCache
-def request_cache(time=3600, check_db=True):
+def request_cache(time=3600, check_db=True,key_parameter='cache_key'):
 	def _decorate(method):
 		def _wrapper(*args, **kwargs):
+			request=args[0].request
+			response=args[0].response
+			
 			from model import g_blog
-			if not g_blog.enable_memcache and not check_db:
+			if (not g_blog.enable_memcache and not check_db) or (key_parameter in kwargs and kwargs[key_parameter] == 'no cache'):
+				if 'last-modified' not in response.headers:
+						response.last_modified = format_date(datetime.utcnow())
 				method(*args, **kwargs)
 				return
 
-			request=args[0].request
-			response=args[0].response
 			key=request.path_qs
+			if key_parameter in kwargs:
+				key = key+'_'+kwargs[key_parameter]
+				del kwargs[key_parameter]
 			
-			html= memcache.get(key)
+			html= memcache.get(key)#no need to check if blog has enabled memcache
 			if not html and check_db:
 				db_cache = DBCache.all().filter("key =",key).get()
 				if db_cache is not None and db_cache.time_stamp + timedelta(seconds = time) > datetime.now():

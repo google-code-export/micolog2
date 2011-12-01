@@ -172,8 +172,11 @@ def _get_entries_by_category(categories_keys, offset, fetch_n=20):
 	return __get_entries_by_category(categories_keys,offset,fetch_n,cache_postfix=str(categories_keys)+'_'+str(offset)+'_'+str(fetch_n))
 
 class entriesByCategory(BasePublicPage):
-	@request_cache(time=3600*24, check_db=True)
 	def get(self,slug=None):
+		return self._get(slug, cache_postfix=str(slug))
+
+	@request_cache(time=3600*24,check_db=True)
+	def _get(self,slug, cache_postfix):
 		if not slug:
 			self.error(404)
 			return
