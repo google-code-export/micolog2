@@ -86,7 +86,7 @@ def format_date(dt):
 
 import marshal
 from model import DBCache
-def request_cache(time=3600, check_db=True,key_parameter='cache_key'):
+def request_cache(time=3600, check_db=True,key_parameter='cache_postfix'):
 	def _decorate(method):
 		def _wrapper(*args, **kwargs):
 			request=args[0].request
