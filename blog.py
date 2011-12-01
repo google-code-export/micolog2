@@ -490,7 +490,6 @@ class Error404(BaseRequestHandler):
 	def get(self,slug=None):
 		self.error(404)
 
-#TODO: change this
 class Post_comment(BaseRequestHandler):
 	#@printinfo
 	def post(self,slug=None):
@@ -519,7 +518,7 @@ class Post_comment(BaseRequestHandler):
 					checknum=self.param('checknum')
 					checkret=self.param('checkret')
 					check_ret=eval(checknum)==int(gb.stringQ2B( checkret))
-				elif g_blog.comment_check_type == 4:
+				elif g_blog.comment_check_type == 4:#reCAPTCHA, probably not working in China mainland
 					ip = self.request.remote_addr
 					private_key = "6Leox8YSAAAAAGJ734ttj4OYojDiCcsb1tcDBarA"
 					resp = self.param('checkret')
