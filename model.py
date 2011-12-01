@@ -556,6 +556,13 @@ class Entry(BaseModel):
 		else:
 			return Comment.all().filter('entry =',self).order('date')
 
+	@object_cache(key='comment.purecomments_count',time=3600*2, check_db=True)
+	def _purecomments_count(self,cache_postfix):
+		return self.purecomments().count()
+
+	def purecomments_count(self):
+		return self._purecomments_count(cache_postfix=str(self.post_id))
+
 	def purecomments(self):
 		if g_blog.comments_order:
 			return Comment.all().filter('entry =',self).filter('ctype =',0).order('-date')
