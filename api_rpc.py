@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+###################################################
+#this file is under GPL v3 license
+#Originally taken from Micolog
+#Modified by Rex to reduce data store operations
+##################################################
 import wsgiref.handlers
 import xmlrpclib
 from xmlrpclib import Fault
@@ -16,8 +21,6 @@ from model import *
 from micolog_plugin import *
 from urlparse import urlparse
 MAX_NUM=100
-
-#TODO change the rpc code later
 
 def checkauth(pos=1):
 	def _decorate(method):
@@ -47,7 +50,8 @@ def dateformat(creatdate):
 		dt=datetime.strptime(creatdate, "%Y%m%dT%H:%M:%SZ")
 	return dt
 
-def post_struct(entry):
+@object_cache(key='post_struct',time=3600*24,check_db=True)
+def _post_struct(entry, cache_postfix):
 	if not entry:
 		 raise Fault(404, "Post does not exist")
 	categories=[]
@@ -81,6 +85,9 @@ def post_struct(entry):
 		struct['date_created_gmt'] = format_date(entry.date)
 
 	return struct
+
+def post_struct(entry):
+	return _post_struct(entry,entry.fullurl)
 
 def page_struct(entry):
 	if not entry:

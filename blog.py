@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+###################################################
+#this file is under GPL v3 license
+#Originally taken from Micolog
+#Modified by Rex to reduce data store operations
+##################################################
 import cgi, os,sys,math
 import wsgiref.handlers
 import  google.appengine.api
