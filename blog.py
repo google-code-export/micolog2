@@ -693,7 +693,6 @@ class do_action(BaseRequestHandler):
 		self.write(settings.LANGUAGE_CODE)
 		self.write(_("this is a test"))
 
-#TODO: change this
 class getMedia(webapp.RequestHandler):
 	def get(self,slug):
 		media=Media.get(slug)
