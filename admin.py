@@ -564,9 +564,6 @@ class admin_entries(BaseRequestHandler):
 		except:
 			page_index=1
 
-
-
-
 		entries=Entry.all().filter('entrytype =',slug).order('-date')
 		entries,links=Pager(query=entries,items_per_page=15).fetch(page_index)
 

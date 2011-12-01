@@ -27,7 +27,8 @@ class DBCache(db.Model):
 	time_stamp = db.DateTimeProperty(auto_now=True)
 
 import marshal
-def object_cache(key="",time=3600, check_db = False, key_parameter='cache_key'):
+
+def object_cache(key="",time=3600, check_db = True, key_parameter='cache_postfix'):
 	'''
 	method return value should be unicode
 	'''
@@ -179,7 +180,7 @@ class Blog(db.Model):
 	urlpath = db.StringProperty(multiline=False)
 	title = db.StringProperty(multiline=False,default='Micolog')
 	subtitle = db.StringProperty(multiline=False,default='This is a micro blog.')
-	entrycount = db.IntegerProperty(default=0)#TODO: seems to be the right place?
+	entrycount = db.IntegerProperty(default=0)
 	posts_per_page= db.IntegerProperty(default=10)
 	feedurl = db.StringProperty(multiline=False,default='/feed')
 	blogversion = db.StringProperty(multiline=False,default='0.30')
@@ -201,7 +202,7 @@ class Blog(db.Model):
 	domain=db.StringProperty()
 	show_excerpt=db.BooleanProperty(default=True)
 	version=0.1 #Micolog2's version number
-	timedelta=db.FloatProperty(default=8.0)# hours #TODO: what does this for?
+	timedelta=db.FloatProperty(default=8.0)# hours #seems to be time zone specific?
 	language=db.StringProperty(default="en-us")
 
 	sitemap_entries=db.IntegerProperty(default=30)
@@ -261,16 +262,15 @@ class Blog(db.Model):
 	def rootpath(self):
 		return rootpath
 
-	@object_cache("blog.hotposts")
+	@object_cache(key='blog.hotposts',time=36000,check_db=True)
 	def hotposts(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-readtimes').fetch(8)
 
-	@object_cache("blog.recentposts")
+	@object_cache(key="blog.recentposts",time=7200,check_db=True)
 	def recentposts(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-date').fetch(8)
 
-	#TODO: rewrite this
-	@object_cache("blog.postscount")
+	@object_cache("blog.postscount",time=86400,check_db=True)
 	def postscount(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-date').count()
 
@@ -279,12 +279,13 @@ class Category(db.Model):
 	name=db.StringProperty(multiline=False)
 	slug=db.StringProperty(multiline=False)
 	parent_cat=db.SelfReferenceProperty()
+	
 	@property
 	def posts(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).filter('categorie_keys =',self)
 
-	#TODO: rewrite this function
 	@property
+	@object_cache(key="category.count",time=96400,check_db=True)
 	def count(self):
 		return self.posts.count()
 
@@ -338,8 +339,8 @@ class Category(db.Model):
 		key=self.key()
 		return [c for c in Category.all().filter('parent_cat =',self)]
 
-	#TODO: cache this result
 	@classmethod
+	@object_cache(key="category.alltops",time=98400,check_db=True)
 	def allTops(self):
 		return [c for c in Category.all() if not c.parent_cat]
 
@@ -352,12 +353,16 @@ class Archive(db.Model):
 
 class Tag(db.Model):
 	tag = db.StringProperty(multiline=False)
-	tagcount = db.IntegerProperty(default=0)
+	tagcount = db.IntegerProperty(default=0) #可以指示拥有此tag的文章有多少个
 
-	#TODO: don't understand
+	@object_cache(key='tag.posts',time=98400,check_db=True)
+	def _posts(self, cache_postfix):
+		return Entry.all('entrytype =','post').filter("published =", True).filter('tags =',self)
+	
+	#TODO_FUTURE: 只能找到仅含此tag的文章，不是包含此tag的文章
 	@property
 	def posts(self):
-		return Entry.all('entrytype =','post').filter("published =", True).filter('tags =',self)
+		return self._posts(cache_postfix=self.tag)
 
 	@classmethod
 	def add(cls,value):
@@ -367,7 +372,7 @@ class Tag(db.Model):
 				tag=Tag(key_name=value)
 				tag.tag=value
 
-			tag.tagcount+=1 #TODO: seems to be a bug
+			tag.tagcount+=1
 			tag.put()
 			return tag
 		else:
@@ -495,7 +500,6 @@ class Entry(BaseModel):
 	def fullurl(self):
 		return g_blog.baseurl+'/'+self.link;
 
-	#TODO: 没看懂，需要调试
 	@property
 	def categories(self):
 		try:
@@ -527,12 +531,15 @@ class Entry(BaseModel):
 			Tag.add(v)
 		self.tags=tags
 
-	#TODO: add cache
-	def get_comments_by_page(self,index,psize):
+	@object_cache(key='entry.get_comments_by_page',time=3600,check_db=True)
+	def _get_comments_by_page(self,index,psize, cache_postfix):
 		if g_blog.comments_order:
 			return Comment.all().filter('entry =',self).order('-date').fetch(psize,offset = (index-1) * psize)
 		else:
 			return Comment.all().filter('entry =',self).order('date').fetch(psize,offset = (index-1) * psize)
+
+	def get_comments_by_page(self,index,psize):
+		return self._get_comments_by_page(index,psize,cache_postfix=str(self.post_id) + '_'+str(index)+'-'+str(psize))
 
 	@property
 	def strtags(self):
@@ -542,30 +549,31 @@ class Entry(BaseModel):
 	def edit_url(self):
 		return '/admin/%s?key=%s&action=edit'%(self.entrytype,self.key())
 
-	#TODO: check returen type
+	#TODOFUTURE: check return type, should be a query object. (if need modify, remember to also modify the following functions)
 	def comments(self):
 		if g_blog.comments_order:
 			return Comment.all().filter('entry =',self).order('-date')
 		else:
 			return Comment.all().filter('entry =',self).order('date')
 
-	#TODO: check returen type
 	def purecomments(self):
 		if g_blog.comments_order:
 			return Comment.all().filter('entry =',self).filter('ctype =',0).order('-date')
 		else:
 			return Comment.all().filter('entry =',self).filter('ctype =',0).order('date')
 
-	#TODO: check returen type
 	def trackcomments(self):
 		if g_blog.comments_order:
 			return Comment.all().filter('entry =',self).filter('ctype IN',[1,2]).order('-date')
 		else:
 			return Comment.all().filter('entry =',self).filter('ctype IN',[1,2]).order('date')
 
-	#TODO: check returen type, rewrite this if possible
-	def commentsTops(self):
+	@object_cache(key='entry.commentstops',time=3600,check_db=True)
+	def _commentsTops(self,cache_postfix):
 		return [c for c  in self.purecomments() if c.parent_key()==None]
+
+	def commentsTops(self):
+		return self._commentsTops(cache_postfix=str(self.post_id))
 
 	def delete_comments(self):
 		cmts = Comment.all().filter('entry =',self)
