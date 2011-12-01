@@ -89,7 +89,8 @@ def _post_struct(entry, cache_postfix):
 def post_struct(entry):
 	return _post_struct(entry,entry.fullurl)
 
-def page_struct(entry):
+@object_cache(key='post_struct',time=3600*24,check_db=True)
+def _page_struct(entry, cache_postfix):
 	if not entry:
 		 raise Fault(404, "Post does not exist")
 	categories=[]
@@ -125,6 +126,9 @@ def page_struct(entry):
 		struct['date_created_gmt'] = format_date(entry.date)
 
 	return struct
+
+def page_struct(entry):
+	return _page_struct(entry,entry.fullurl)
 
 def entry_title_struct(entry):
 	if not entry:
