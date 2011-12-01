@@ -200,7 +200,6 @@ class util:
 		taskqueue.add(url='/admin/do/pingback_ping',
 			params={'source': source_uri,'target':target_uri})
 
-#TODO: update all pager usages
 class Pager(object):
 
 	def __init__(self, model=None,query=None, items_per_page=10, query_len=None):
