@@ -612,7 +612,6 @@ class Post_comment(BaseRequestHandler):
 				else:
 					self.error(-102,_('Comment not allowed .'))
 
-#TODO: change this
 class ChangeTheme(BaseRequestHandler):
 	@requires_admin
 	def get(self,slug=None):
@@ -621,7 +620,6 @@ class ChangeTheme(BaseRequestHandler):
 	   g_blog.get_theme()
 	   self.redirect('/')
 
-#TODO: change this
 class do_action(BaseRequestHandler):
 	def get(self,slug=None):
 		try:
@@ -643,6 +641,7 @@ class do_action(BaseRequestHandler):
 		except:
 			 self.error(404)
 
+	#no usage found
 	@ajaxonly
 	def action_info_login(self):
 		if self.login_user:
@@ -652,6 +651,7 @@ class do_action(BaseRequestHandler):
 		else:
 			self.write(simplejson.dumps({'islogin':False}))
 
+	#no usage found
 	#@hostonly
 	@request_cache()
 	def action_proxy(self):
@@ -663,6 +663,7 @@ class do_action(BaseRequestHandler):
 			self.response.out.write(result.content)
 		return
 
+	#no usage found
 	def action_getcomments(self):
 		key=self.param('key')
 		entry=Entry.get(key)
