@@ -9,6 +9,8 @@ from google.appengine.ext.webapp import template
 from google.appengine.api import memcache
 from google.appengine.api import urlfetch
 ##import app.webapp as webapp2
+from model import object_cache
+
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 from django.utils.translation import  activate
 from django.template import TemplateDoesNotExist
@@ -186,22 +188,26 @@ class util:
 		taskqueue.add(url='/admin/do/pingback_ping',
 			params={'source': source_uri,'target':target_uri})
 
-#TODO confirm if this would be costy
 class Pager(object):
 
-	def __init__(self, model=None,query=None, items_per_page=10):
+	def __init__(self, model=None,query=None, items_per_page=10, query_len=None):
 		if model:
 			self.query = model.all()
 		else:
 			self.query=query
 
 		self.items_per_page = items_per_page
+		self.query_len = query_len
 
-	def fetch(self, p):
-		if hasattr(self.query,'__len__'):
+	@object_cache(key='pager.fetch',time=3600,check_db=True)
+	def fetch(self, p, cache_postfix):
+		if self.query_len is not None:
+			max_offset = self.query_len
+		elif hasattr(self.query,'__len__'):
 			max_offset=len(self.query)
 		else:
 			max_offset = self.query.count()
+			
 		n = max_offset / self.items_per_page
 		if max_offset % self.items_per_page != 0:
 			n += 1
