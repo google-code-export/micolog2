@@ -706,7 +706,6 @@ class getMedia(webapp.RequestHandler):
 				media.download+=1
 				media.put()
 
-#TODO: change this
 class CheckImg(BaseRequestHandler):
 	def get(self):
 		img = Image()
