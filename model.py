@@ -362,9 +362,10 @@ class Tag(db.Model):
 		return Entry.all('entrytype =','post').filter("published =", True).filter('tags =',self)
 	
 	#TODO_FUTURE: 只能找到仅含此tag的文章，不是包含此tag的文章
-	@property
-	def posts(self):
-		return self._posts(cache_postfix=self.tag)
+	#seems that this function is never used by anywhere
+	#@property
+	#def posts(self):
+	#	return self._posts(cache_postfix=self.tag)
 
 	@classmethod
 	def add(cls,value):
@@ -551,7 +552,7 @@ class Entry(BaseModel):
 	def edit_url(self):
 		return '/admin/%s?key=%s&action=edit'%(self.entrytype,self.key())
 
-	#TODOFUTURE: check return type, should be a query object. (if need modify, remember to also modify the following functions)
+	#TODO_FUTURE: check return type, should be a query object. (if need modify, remember to also modify the following functions)
 	def comments(self):
 		if g_blog.comments_order:
 			return Comment.all().filter('entry =',self).order('-date')
