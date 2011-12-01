@@ -109,14 +109,13 @@ class BasePublicPage(BaseRequestHandler):
 			.filter('sticky =',True)\
 			.order('-date').fetch()
 
-#TODO: add cache
 class MainPage(BasePublicPage):
 	def get(self,page=1):
 		postid=self.param('p')
 		if postid:
 			try:
 				postid=int(postid)
-				return doRequestHandle(self,SinglePost(),postid=postid)  #singlepost.get(postid=postid)
+				return doRequestHandle(self,SinglePost(),postid=postid) 
 			except:
 				return self.error(404)
 		self.doget(page)
@@ -130,8 +129,7 @@ class MainPage(BasePublicPage):
 			except:
 				return self.error(404)
 
-
-	@request_cache(time=43200)
+	@request_cache(time=3600*24, check_db=True)
 	def doget(self,page):
 		page=int(page)
 		entrycount=g_blog.postscount()
