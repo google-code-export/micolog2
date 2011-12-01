@@ -357,9 +357,9 @@ class Tag(db.Model):
 	tag = db.StringProperty(multiline=False)
 	tagcount = db.IntegerProperty(default=0) #可以指示拥有此tag的文章有多少个
 
-	@object_cache(key='tag.posts',time=98400,check_db=True)
-	def _posts(self, cache_postfix):
-		return Entry.all('entrytype =','post').filter("published =", True).filter('tags =',self)
+	#@object_cache(key='tag.posts',time=98400,check_db=True)
+	#def _posts(self, cache_postfix):
+	#	return Entry.all('entrytype =','post').filter("published =", True).filter('tags =',self)
 	
 	#TODO_FUTURE: 只能找到仅含此tag的文章，不是包含此tag的文章
 	#seems that this function is never used by anywhere

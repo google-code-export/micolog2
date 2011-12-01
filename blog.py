@@ -42,24 +42,31 @@ def doRequestPostHandle(old_handler,new_handler,**args):
 		new_handler.initialize(old_handler.request,old_handler.response)
 		return  new_handler.post(**args)
 
+@object_cache(key='get_m_pages',time=3600*24,check_db=True)
 def _get_m_pages():
 	return Entry.all().filter('entrytype =','page')\
 			.filter('published =',True)\
 			.filter('entry_parent =',0)\
-			.order('menu_order')
+			.order('menu_order').fetch()
 
+@object_cache(key='get_links',time=3600*24,check_db=True)
 def _get_links():
-	return Link.all().filter('linktype =','blogroll')
+	return Link.all().filter('linktype =','blogroll').fetch()
 
+@object_cache(key='get_archives',time=3600*24,check_db=True)
 def _get_archives():
 	return Archive.all().order('-year').order('-month').fetch(12)
 
+#seems no where used
+@object_cache(key='get_tags',time=3600*24,check_db=True)
 def _get_tags():
-	return Tag.all()
+	return Tag.all().fetch()
 
+@object_cache(key='get_categories',time=3600*24,check_db=True)
 def _get_categories():
-	return Category.all()
+	return Category.all().fetch()
 
+@object_cache(key='get_recent_comments',time=1800,check_db=True)
 def _get_recent_comments():
 	return Comment.all().order('-date').fetch(5)
 
@@ -69,13 +76,13 @@ class BasePublicPage(BaseRequestHandler):
 		m_pages = _get_m_pages()
 		blogroll = _get_links()
 		archives = _get_archives()
-		alltags = _get_tags()
-		self.template_vals.update({#TODO: make sure this queries are with good use
+		#alltags = _get_tags()
+		self.template_vals.update({
 						'menu_pages':m_pages,
 						'categories':_get_categories(),
 						'blogroll':blogroll,
 						'archives':archives,
-						'alltags':alltags,
+						#'alltags':alltags, #TODO_FUTURE: this seems to be used by nowhere and consume a lot, just comment is out for now
 						'recent_comments':_get_recent_comments()
 		})
 
