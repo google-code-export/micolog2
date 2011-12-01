@@ -449,9 +449,8 @@ class CommentsFeedHandler(BaseRequestHandler):
 		self.response.headers['Content-Type'] = 'application/rss+xml'
 		self.render2('views/comments.xml',{'comments':comments,'last_updated':last_updated})
 
-#TODO: change this
 class SitemapHandler(BaseRequestHandler):
-	@request_cache(time=36000)
+	@request_cache(time=3600*24)
 	def get(self,tags=None):
 		urls = []
 		def addurl(loc,lastmod=None,changefreq=None,priority=None):
@@ -482,7 +481,6 @@ class SitemapHandler(BaseRequestHandler):
 			for tag in tags:
 				loc="%s/tag/%s"%(g_blog.baseurl, urlencode(tag.tag))
 				addurl(loc,None,'weekly',0.5)
-
 
 ##		self.response.headers['Content-Type'] = 'application/atom+xml'
 		self.render2('views/sitemap.xml',{'urlset':urls})
