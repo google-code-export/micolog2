@@ -129,7 +129,7 @@ class MainPage(BasePublicPage):
 				return self.error(404)
 
 
-	@request_cache(key='Rex_MainPage',time=43200)
+	@request_cache(time=43200)
 	def doget(self,page):
 		page=int(page)
 		entrycount=g_blog.postscount()
@@ -164,7 +164,7 @@ def _get_category_post_count(category_key):
 
 #TODO: change this
 class entriesByCategory(BasePublicPage):
-	@request_cache(key='Rex_entriesByCategory',time=86400)
+	@request_cache(time=86400)
 	def get(self,slug=None):
 		if not slug:
 			self.error(404)
@@ -190,7 +190,7 @@ class entriesByCategory(BasePublicPage):
 
 #TODO: change this
 class archive_by_month(BasePublicPage):
-	@request_cache(key='Rex_archive_by_month2', time=86400)
+	@request_cache(time=86400)
 	def get(self,year,month):
 		try:
 			page_index=int (self.param('page'))
