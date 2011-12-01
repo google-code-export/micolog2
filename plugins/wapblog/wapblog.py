@@ -5,7 +5,7 @@ import urllib
 from model import *
 from google.appengine.api import users
 from google.appengine.api import memcache
-from base import BaseRequestHandler,cache
+from base import BaseRequestHandler,request_cache
 from google.appengine.ext import webapp
 from datetime import datetime, timedelta
 
@@ -57,7 +57,7 @@ class waphandler(BaseRequestHandler):
 	def get(self,page=1):
 		self.doget(page)
 
-	@cache()
+	@request_cache()
 	def doget(self,page):
 		try:
 			from model import g_blog
@@ -100,7 +100,7 @@ class waphandler(BaseRequestHandler):
 							})
 
 class pagehandler(BaseRequestHandler):
-	@cache()
+	@request_cache()
 	def get(self,*arg1):
 		try: id=int(self.param("id") or self.param("p") )
 		except: return self.redirect('/wap')

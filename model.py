@@ -42,7 +42,7 @@ def object_cache(key="",time=3600, check_db = True, key_parameter='cache_postfix
 				del kwargs[key_parameter]
 
 			if g_blog.enable_memcache:
-				result = memcache.get(key)
+				result = memcache.get(ikey)
 				if result is not None:
 					return result
 				

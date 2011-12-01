@@ -84,31 +84,34 @@ def hostonly(method):
 def format_date(dt):
 	return dt.strftime('%a, %d %b %Y %H:%M:%S GMT')
 
-#seems only can be used on requests
-def cache(key="",time=3600):
+import marshal
+from model import DBCache
+def request_cache(time=3600, check_db=True):
 	def _decorate(method):
 		def _wrapper(*args, **kwargs):
 			from model import g_blog
-			if not g_blog.enable_memcache:
+			if not g_blog.enable_memcache and not check_db:
 				method(*args, **kwargs)
 				return
 
 			request=args[0].request
 			response=args[0].response
-			skey=key+ request.path_qs
-			#logging.info('skey:'+skey)
-			html= memcache.get(skey)
-			#arg[0] is BaseRequestHandler object
+			key=request.path_qs
+			
+			html= memcache.get(key)
+			if not html and check_db:
+				db_cache = DBCache.all().filter("key =",key).get()
+				if db_cache is not None and db_cache.time_stamp + timedelta(seconds = time) > datetime.now():
+					html = marshal.loads(db_cache.value)
 
 			if html:
-				 logging.info('cache:'+skey)
 				 response.last_modified =html[1]
-				 ilen=len(html)
-				 if ilen>=3:
+				 _len=len(html)
+				 if _len>=3:
 					response.set_status(html[2])
-				 if ilen>=4:
-					for skey,value in html[3].items():
-						response.headers[skey]=value
+				 if _len>=4:
+					for h_key,value in html[3].items():
+						response.headers[h_key]=value
 				 response.out.write(html[0])
 			else:
 				if 'last-modified' not in response.headers:
@@ -117,8 +120,11 @@ def cache(key="",time=3600):
 				method(*args, **kwargs)
 				result=response.out.getvalue()
 				status_code = response._Response__status[0]
-				logging.debug("Cache:%s"%status_code)
-				memcache.set(skey,(result,response.last_modified,status_code,response.headers),time)
+				html = (result,response.last_modified,status_code,response.headers)
+				if g_blog.enable_memcache:
+					memcache.set(key,html,time)
+				if check_db:
+					DBCache(key=key,value=marshal.dumps(html)).put()
 
 		return _wrapper
 	return _decorate

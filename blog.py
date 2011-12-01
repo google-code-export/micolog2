@@ -42,36 +42,24 @@ def doRequestPostHandle(old_handler,new_handler,**args):
 		new_handler.initialize(old_handler.request,old_handler.response)
 		return  new_handler.post(**args)
 
-#TODO: change this
-@object_cache(key='Rex_m_pages',time=86400)
 def _get_m_pages():
 	return Entry.all().filter('entrytype =','page')\
 			.filter('published =',True)\
 			.filter('entry_parent =',0)\
 			.order('menu_order')
 
-#TODO: change this
-@object_cache(key='Rex_links',time=86400)
 def _get_links():
 	return Link.all().filter('linktype =','blogroll')
 
-#TODO: change this
-@object_cache(key='Rex_archives',time=86400)
 def _get_archives():
 	return Archive.all().order('-year').order('-month').fetch(12)
 
-#TODO: change this
-@object_cache(key='Rex_tags',time=86400)
 def _get_tags():
 	return Tag.all()
 
-#TODO: change this
-@object_cache(key='Rex_categories',time=86400)
 def _get_categories():
 	return Category.all()
 
-#TODO: change this
-@object_cache(key='Rex_recent_comments', time=3600)
 def _get_recent_comments():
 	return Comment.all().order('-date').fetch(5)
 
@@ -82,7 +70,7 @@ class BasePublicPage(BaseRequestHandler):
 		blogroll = _get_links()
 		archives = _get_archives()
 		alltags = _get_tags()
-		self.template_vals.update({
+		self.template_vals.update({#TODO: make sure this queries are with good use
 						'menu_pages':m_pages,
 						'categories':_get_categories(),
 						'blogroll':blogroll,
@@ -141,7 +129,7 @@ class MainPage(BasePublicPage):
 				return self.error(404)
 
 
-	@cache(key='Rex_MainPage',time=43200)
+	@request_cache(key='Rex_MainPage',time=43200)
 	def doget(self,page):
 		page=int(page)
 		entrycount=g_blog.postscount()
@@ -176,7 +164,7 @@ def _get_category_post_count(category_key):
 
 #TODO: change this
 class entriesByCategory(BasePublicPage):
-	@cache(key='Rex_entriesByCategory',time=86400)
+	@request_cache(key='Rex_entriesByCategory',time=86400)
 	def get(self,slug=None):
 		if not slug:
 			self.error(404)
@@ -202,7 +190,7 @@ class entriesByCategory(BasePublicPage):
 
 #TODO: change this
 class archive_by_month(BasePublicPage):
-	@cache(key='Rex_archive_by_month2', time=86400)
+	@request_cache(key='Rex_archive_by_month2', time=86400)
 	def get(self,year,month):
 		try:
 			page_index=int (self.param('page'))
@@ -220,7 +208,7 @@ class archive_by_month(BasePublicPage):
 
 #TODO: change this
 class entriesByTag(BasePublicPage):
-	@cache() #TODO:should implement?
+	@request_cache() #TODO:should implement?
 	def get(self,slug=None):
 		self.error(404)
 
@@ -230,7 +218,7 @@ class SinglePost(BasePublicPage):
 		if g_blog.allow_pingback :
 			self.response.headers['X-Pingback']="%s/rpc"%str(g_blog.baseurl)
 
-	@cache()
+	@request_cache()
 	def get(self,slug=None,postid=None):
 		if postid:
 			entries = Entry.all().filter("published =", True).filter('post_id =', postid).fetch(1)
@@ -423,7 +411,7 @@ class SinglePost(BasePublicPage):
 
 #TODO: change this
 class FeedHandler(BaseRequestHandler):
-	@cache(time=600)
+	@request_cache(time=600)
 	def get(self,tags=None):
 		entries = Entry.all().filter('entrytype =','post').filter('published =',True).order('-date').fetch(10)
 		if entries and entries[0]:
@@ -436,7 +424,7 @@ class FeedHandler(BaseRequestHandler):
 
 #TODO: change this
 class CommentsFeedHandler(BaseRequestHandler):
-	@cache(time=600)
+	@request_cache(time=600)
 	def get(self,tags=None):
 		comments = Comment.all().order('-date').filter('ctype =',0).fetch(10)
 		if comments and comments[0]:
@@ -449,7 +437,7 @@ class CommentsFeedHandler(BaseRequestHandler):
 
 #TODO: change this
 class SitemapHandler(BaseRequestHandler):
-	@cache(time=36000)
+	@request_cache(time=36000)
 	def get(self,tags=None):
 		urls = []
 		def addurl(loc,lastmod=None,changefreq=None,priority=None):
@@ -487,7 +475,7 @@ class SitemapHandler(BaseRequestHandler):
 
 #TODO: change this
 class Error404(BaseRequestHandler):
-	@cache(time=36000)
+	@request_cache(time=36000)
 	def get(self,slug=None):
 		self.error(404)
 
@@ -655,7 +643,7 @@ class do_action(BaseRequestHandler):
 			self.write(simplejson.dumps({'islogin':False}))
 
 	#@hostonly
-	@cache()
+	@request_cache()
 	def action_proxy(self):
 		result=urlfetch.fetch(self.param("url"), headers=self.request.headers)
 		if result.status_code == 200:
