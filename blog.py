@@ -437,9 +437,8 @@ class FeedHandler(BaseRequestHandler):
 		self.response.headers['Content-Type'] = 'application/rss+xml'
 		self.render2('views/rss.xml',{'entries':entries,'last_updated':last_updated})
 
-#TODO: change this
 class CommentsFeedHandler(BaseRequestHandler):
-	@request_cache(time=600)
+	@request_cache(time=3600*2, check_db=True)
 	def get(self,tags=None):
 		comments = Comment.all().order('-date').filter('ctype =',0).fetch(10)
 		if comments and comments[0]:
