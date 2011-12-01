@@ -485,9 +485,8 @@ class SitemapHandler(BaseRequestHandler):
 ##		self.response.headers['Content-Type'] = 'application/atom+xml'
 		self.render2('views/sitemap.xml',{'urlset':urls})
 
-#TODO: change this
 class Error404(BaseRequestHandler):
-	@request_cache(time=36000)
+	@request_cache(time=3600*24, check_db=True)
 	def get(self,slug=None):
 		self.error(404)
 
