@@ -719,7 +719,6 @@ class CheckImg(BaseRequestHandler):
 		self.response.headers['Content-Type'] = "image/png"
 		self.response.out.write(imgdata)
 
-#TODO: change this
 class CheckCode(BaseRequestHandler):
 	def get(self):
 		sess=Session(self,timeout=900)
@@ -731,7 +730,6 @@ class CheckCode(BaseRequestHandler):
 		#self.response.headers['Content-Type'] = "text/html"
 		self.response.out.write(code)
 
-#TODO: change this
 class Other(BaseRequestHandler):
 	def get(self,slug=None):
 		if not g_blog.tigger_urlmap(slug,page=self):
