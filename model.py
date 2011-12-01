@@ -36,6 +36,8 @@ def object_cache(key="",time=3600, check_db = True, key_parameter='cache_postfix
 		def _wrapper(*args, **kwargs):
 			ikey = key
 			if key_parameter in kwargs:
+				if kwargs[key_parameter] == 'no cache':
+					return method(*args,**kwargs)
 				ikey = ikey+'_'+kwargs[key_parameter]
 				del kwargs[key_parameter]
 

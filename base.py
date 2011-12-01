@@ -200,7 +200,7 @@ class Pager(object):
 		self.query_len = query_len
 
 	@object_cache(key='pager.fetch',time=3600,check_db=True)
-	def fetch(self, p, cache_postfix):
+	def fetch(self, p, cache_postfix='no cache'):
 		if self.query_len is not None:
 			max_offset = self.query_len
 		elif hasattr(self.query,'__len__'):
