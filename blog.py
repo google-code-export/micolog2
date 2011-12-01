@@ -73,16 +73,12 @@ def _get_recent_comments():
 class BasePublicPage(BaseRequestHandler):
 	def initialize(self, request, response):
 		BaseRequestHandler.initialize(self,request, response)
-		m_pages = _get_m_pages()
-		blogroll = _get_links()
-		archives = _get_archives()
-		#alltags = _get_tags()
 		self.template_vals.update({
-						'menu_pages':m_pages,
+						'menu_pages':_get_m_pages(),
 						'categories':_get_categories(),
-						'blogroll':blogroll,
-						'archives':archives,
-						#'alltags':alltags, #TODO_FUTURE: this seems to be used by nowhere and consume a lot, just comment is out for now
+						'blogroll':_get_links(),
+						'archives':_get_archives(),
+						#'alltags':_get_tags(), #TODO_FUTURE: this seems to be used by nowhere and consume a lot, just comment is out for now
 						'recent_comments':_get_recent_comments()
 		})
 
@@ -106,13 +102,12 @@ class BasePublicPage(BaseRequestHandler):
 				ret+='<li class="%s"><a href="/%s" target="%s">%s</a></li>'%( current,page.link, page.target,page.title)
 		return ret
 
-	#TODO: change this
-	@object_cache(key='Rex_sticky_entries',time=86400)
+	@object_cache(key='basepublicpage.sticky_entries',time=3600*24,check_db=True)
 	def sticky_entrys(self):
 		return Entry.all().filter('entrytype =','post')\
 			.filter('published =',True)\
 			.filter('sticky =',True)\
-			.order('-date')
+			.order('-date').fetch()
 
 #TODO: add cache
 class MainPage(BasePublicPage):
