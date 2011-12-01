@@ -172,11 +172,8 @@ def _get_entries_by_category(categories_keys, offset, fetch_n=20):
 	return __get_entries_by_category(categories_keys,offset,fetch_n,cache_postfix=str(categories_keys)+'_'+str(offset)+'_'+str(fetch_n))
 
 class entriesByCategory(BasePublicPage):
-	def get(self,slug=None):
-		return self._get(slug, cache_postfix=str(slug))
-
 	@request_cache(time=3600*24,check_db=True)
-	def _get(self,slug, cache_postfix):
+	def get(self,slug):
 		if not slug:
 			self.error(404)
 			return
@@ -200,11 +197,8 @@ class entriesByCategory(BasePublicPage):
 			self.error(414,slug)
 
 class archive_by_month(BasePublicPage):
-	def get(self,year,month):
-		return self._get(year,month,cache_postfix=str(year)+'_'+str(month))
-
 	@request_cache(time=3600*24,check_db=True)
-	def _get(self,year,month,cache_postfix):
+	def get(self,year,month):
 		try:
 			page_index=int (self.param('page'))
 		except:
@@ -220,11 +214,8 @@ class archive_by_month(BasePublicPage):
 		self.render('month',{'entries':entries,'year':year,'month':month,'pager':links})
 
 class entriesByTag(BasePublicPage):
-	def get(self,slug=None):
-		return self._get(slug, cache_postfix=str(slug))
-
 	@request_cache(time=3600*24,check_db=True)
-	def _get(self,slug,cache_postfix):
+	def get(self,slug):
 		if not slug:
 				 self.error(404)
 				 return
@@ -235,17 +226,17 @@ class entriesByTag(BasePublicPage):
 		#import urllib
 		slug=urldecode(slug)
 
+		#this is no problem cause "tags=" is in fact "tags in"
 		entries=Entry.all().filter("published =", True).filter('tags =',slug).order("-date")
 		entries,links=Pager(query=entries,items_per_page=20).fetch(page_index, cache_postfix='entry.published.tags='+slug+'.-date')
 		self.render('tag',{'entries':entries,'tag':slug,'pager':links})
 
-#TODO: change this
 class SinglePost(BasePublicPage):
 	def head(self,slug=None,postid=None):
 		if g_blog.allow_pingback :
 			self.response.headers['X-Pingback']="%s/rpc"%str(g_blog.baseurl)
 
-	@request_cache()
+	@request_cache(time=3600*24,check_db=True)
 	def get(self,slug=None,postid=None):
 		if postid:
 			entries = Entry.all().filter("published =", True).filter('post_id =', postid).fetch(1)
@@ -265,16 +256,15 @@ class SinglePost(BasePublicPage):
 		entry.readtimes += 1
 		entry.put()
 		self.entry=entry
-
-		comments=entry.get_comments_by_page(index=mp,psize=self.blog.comments_per_page,cache=str(entry.post_id))
-
-
+		#already cached in get_comments_by_page function
+		comments=entry.get_comments_by_page(index=mp,psize=self.blog.comments_per_page)
+		
 ##		commentuser=self.request.cookies.get('comment_user', '')
 ##		if commentuser:
 ##			commentuser=commentuser.split('#@#')
 ##		else:
 		commentuser=['','','']
-
+		#already cached for purecomments_count()
 		comments_nav=self.get_comments_nav(mp,entry.purecomments_count())
 
 		if entry.entrytype=='post':
@@ -290,7 +280,6 @@ class SinglePost(BasePublicPage):
 						'checknum2':random.randint(1,10),
 						'comments_nav':comments_nav,
 						})
-
 		else:
 			self.render('page',
 						{'entry':entry,
@@ -391,7 +380,7 @@ class SinglePost(BasePublicPage):
 		comment.ctype=COMMENT_TRACKBACK
 		try:
 			comment.save()
-
+			#TODO_FUTURE: make sure that the relevant cache and DB has been cleared (low priority since this is pretty hard at this time)
 			memcache.delete("/"+entry.link)
 			self.write(success)
 			g_blog.tigger_action("pingback_post",comment)
