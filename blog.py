@@ -164,7 +164,7 @@ def __get_category_post_count(category_key, cache_postfix):
 def _get_category_post_count(category_key):
 	return __get_category_post_count(category_key,str(category_key))
 
-@object_cache(key='get_entries_by_category',time=3600*24, check_db=True, key_parameter='cache_postfix')
+@object_cache(key='get_entries_by_category',time=3600*24, check_db=True)
 def __get_entries_by_category(categories_keys, offset, fetch_n, cache_postfix):
 	return Entry.all().filter("published =", True).filter('categorie_keys =',categories_keys).order("-date").fetch(fetch_n,offset)
 	
@@ -199,10 +199,12 @@ class entriesByCategory(BasePublicPage):
 		else:
 			self.error(414,slug)
 
-#TODO: change this
 class archive_by_month(BasePublicPage):
-	@request_cache(time=86400)
 	def get(self,year,month):
+		return self._get(year,month,cache_postfix=str(year)+'_'+str(month))
+
+	@request_cache(time=3600*24,check_db=True)
+	def _get(self,year,month,cache_postfix):
 		try:
 			page_index=int (self.param('page'))
 		except:
@@ -217,11 +219,25 @@ class archive_by_month(BasePublicPage):
 		entries,links=Pager(query=entries).fetch(page_index,cache_postfix='archive_by_month_'+str(year)+'_'+str(month))
 		self.render('month',{'entries':entries,'year':year,'month':month,'pager':links})
 
-#TODO: change this
 class entriesByTag(BasePublicPage):
-	@request_cache() #TODO:should implement?
 	def get(self,slug=None):
-		self.error(404)
+		return self._get(slug, cache_postfix=str(slug))
+
+	@request_cache(time=3600*24,check_db=True)
+	def _get(self,slug,cache_postfix):
+		if not slug:
+				 self.error(404)
+				 return
+		try:
+				page_index=int (self.param('page'))
+		except:
+				page_index=1
+		#import urllib
+		slug=urldecode(slug)
+
+		entries=Entry.all().filter("published =", True).filter('tags =',slug).order("-date")
+		entries,links=Pager(query=entries,items_per_page=20).fetch(page_index, cache_postfix='entry.published.tags='+slug+'.-date')
+		self.render('tag',{'entries':entries,'tag':slug,'pager':links})
 
 #TODO: change this
 class SinglePost(BasePublicPage):
