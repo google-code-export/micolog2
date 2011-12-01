@@ -718,7 +718,6 @@ class Entry(BaseModel):
 	def getbylink(self):
 		pass
 
-	#TODO:add update for count
 	def delete(self):
 		g_blog.tigger_action("pre_delete_post",self)
 		if self.published:
@@ -835,12 +834,15 @@ class Comment(db.Model):
 		db.Model.delete(self)
 		g_blog.tigger_action("delete_comment",self)
 
-	#TODO: understand and test
-	@property
-	def children(self):
+	@object_cache(key='comment.children',time=3600*24,check_db=True)
+	def _children(self, cache_postfix):
 		key=self.key()
 		comments=Comment.all().ancestor(self)
 		return [c for c in comments if c.parent_key()==key]
+
+	@property
+	def children(self):
+		return self._children(cache_postfix=str(self.weburl))
 
 	def store(self, **kwargs):
 		rpc = datastore.GetRpcFromKwargs(kwargs)
