@@ -681,9 +681,8 @@ class Entry(BaseModel):
 	def prev(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-date').filter('date <',self.date).fetch(1)
 
-	#TODO, rewirte this if necessary
-	@property
-	def relateposts(self):
+	@object_cache(key='entry.relateposts',time=3600*24, check_db=True)
+	def _relateposts(self, cache_postfix):
 		if  self._relatepost:
 			return self._relatepost
 		else:
@@ -692,7 +691,6 @@ class Entry(BaseModel):
 				rposts_counts = {} #key is post id, value is count
 				for tag in self.tags:
 					rps = Entry.gql("WHERE published=True and tags=:1 and post_id!=:2 order by post_id desc ", tag, self.post_id).fetch(10)
-					logging.debug(tag + ": " + str(rps))
 					for rp in rps:
 						if not rp.post_id in rposts_ids:
 							rposts_counts[rp.post_id] = 1
@@ -705,6 +703,10 @@ class Entry(BaseModel):
 			else:
 				self._relatepost= []
 			return self._relatepost
+
+	@property
+	def relateposts(self):
+		return self._relateposts(cache_postfix=str(self.post_id))
 
 	@property
 	def trackbackurl(self):
