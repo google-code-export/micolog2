@@ -425,9 +425,8 @@ class SinglePost(BasePublicPage):
 		else:
 			return "/"+url+"?mp="+str(pindex)+"#comments"
 
-#TODO: change this
 class FeedHandler(BaseRequestHandler):
-	@request_cache(time=600)
+	@request_cache(time=3600*2,check_db=True)
 	def get(self,tags=None):
 		entries = Entry.all().filter('entrytype =','post').filter('published =',True).order('-date').fetch(10)
 		if entries and entries[0]:
