@@ -331,7 +331,6 @@ def metaWeblog_editPost(postid, struct, publish):
 
 	return True
 
-
 @checkauth()
 def metaWeblog_getCategories(blogid):
 	categories =Category.all()
