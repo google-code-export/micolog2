@@ -262,7 +262,7 @@ class SinglePost(BasePublicPage):
 ##		else:
 		commentuser=['','','']
 
-		comments_nav=self.get_comments_nav(mp,entry.purecomments().count())
+		comments_nav=self.get_comments_nav(mp,entry.purecomments_count())
 
 		if entry.entrytype=='post':
 			self.render('single',
