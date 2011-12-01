@@ -23,10 +23,11 @@ rootpath=os.path.dirname(__file__)
 
 class DBCache(db.Model):
 	key = db.StringProperty(multiline=False)
-	content = db.TextProperty()
+	value = db.BlobProperty()
 	time_stamp = db.DateTimeProperty(auto_now=True)
 
-def unicode_cache(key="",time=3600, check_db = False, key_parameter='cache_key'):
+import marshal
+def object_cache(key="",time=3600, check_db = False, key_parameter='cache_key'):
 	'''
 	method return value should be unicode
 	'''
@@ -39,20 +40,17 @@ def unicode_cache(key="",time=3600, check_db = False, key_parameter='cache_key')
 
 			if g_blog.enable_memcache:
 				result = memcache.get(key)
-			else:
-				result = None
-
-			if result is not None:
-				return result
+				if result is not None:
+					return result
 				
 			if check_db:
 				db_cache = DBCache.all().filter("key =",ikey).get()
 				if db_cache is not None and db_cache.time_stamp + timedelta(seconds = time) > datetime.now():
-					return unicode(db_cache.content)
+					return marshal.loads(db_cache.value)
 
 			result = method(*args, **kwargs)
 			if check_db:
-				DBCache(key=ikey,content=db.Text(unicode(result))).put()
+				DBCache(key=ikey,value=marshal.dumps(result)).put()
 
 			if g_blog.enable_memcache:
 				memcache.set(ikey,result,time)
@@ -263,16 +261,16 @@ class Blog(db.Model):
 	def rootpath(self):
 		return rootpath
 
-	@unicode_cache("blog.hotposts")
+	@object_cache("blog.hotposts")
 	def hotposts(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-readtimes').fetch(8)
 
-	@unicode_cache("blog.recentposts")
+	@object_cache("blog.recentposts")
 	def recentposts(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-date').fetch(8)
 
 	#TODO: rewrite this
-	@unicode_cache("blog.postscount")
+	@object_cache("blog.postscount")
 	def postscount(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-date').count()
 

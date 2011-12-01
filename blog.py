@@ -43,7 +43,7 @@ def doRequestPostHandle(old_handler,new_handler,**args):
 		return  new_handler.post(**args)
 
 #TODO: change this
-@unicode_cache(key='Rex_m_pages',time=86400)
+@object_cache(key='Rex_m_pages',time=86400)
 def _get_m_pages():
 	return Entry.all().filter('entrytype =','page')\
 			.filter('published =',True)\
@@ -51,27 +51,27 @@ def _get_m_pages():
 			.order('menu_order')
 
 #TODO: change this
-@unicode_cache(key='Rex_links',time=86400)
+@object_cache(key='Rex_links',time=86400)
 def _get_links():
 	return Link.all().filter('linktype =','blogroll')
 
 #TODO: change this
-@unicode_cache(key='Rex_archives',time=86400)
+@object_cache(key='Rex_archives',time=86400)
 def _get_archives():
 	return Archive.all().order('-year').order('-month').fetch(12)
 
 #TODO: change this
-@unicode_cache(key='Rex_tags',time=86400)
+@object_cache(key='Rex_tags',time=86400)
 def _get_tags():
 	return Tag.all()
 
 #TODO: change this
-@unicode_cache(key='Rex_categories',time=86400)
+@object_cache(key='Rex_categories',time=86400)
 def _get_categories():
 	return Category.all()
 
 #TODO: change this
-@unicode_cache(key='Rex_recent_comments', time=3600)
+@object_cache(key='Rex_recent_comments', time=3600)
 def _get_recent_comments():
 	return Comment.all().order('-date').fetch(5)
 
@@ -112,7 +112,7 @@ class BasePublicPage(BaseRequestHandler):
 		return ret
 
 	#TODO: change this
-	@unicode_cache(key='Rex_sticky_entries',time=86400)
+	@object_cache(key='Rex_sticky_entries',time=86400)
 	def sticky_entrys(self):
 		return Entry.all().filter('entrytype =','post')\
 			.filter('published =',True)\
@@ -170,7 +170,7 @@ class MainPage(BasePublicPage):
 							})
 
 #TODO: change this
-@unicode_cache(key="Rex_get_category_pcount",time=86400,key_name_args=['category_key'])
+@object_cache(key="Rex_get_category_pcount",time=86400,key_name_args=['category_key'])
 def _get_category_post_count(category_key):
 	return Entry.all().filter("published =", True).filter('categorie_keys =',category_key).count()
 
