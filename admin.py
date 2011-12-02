@@ -565,7 +565,7 @@ class admin_entries(BaseRequestHandler):
 			page_index=1
 
 		entries=Entry.all().filter('entrytype =',slug).order('-date')
-		entries,links=Pager(query=entries,items_per_page=15).fetch(page_index, cache_postfix='no cache')
+		entries,links=Pager(query=entries,items_per_page=15).fetch(page_index)
 
 		self.render2('views/admin/'+slug+'s.html',
 		 {
@@ -606,7 +606,7 @@ class admin_categories(BaseRequestHandler):
 
 
 		cats=Category.allTops()
-		entries,pager=Pager(query=cats,items_per_page=15).fetch(page_index,cache_postfix='no cache')
+		entries,pager=Pager(query=cats,items_per_page=15).fetch(page_index)
 
 		self.render2('views/admin/categories.html',
 		 {
@@ -644,7 +644,7 @@ class admin_comments(BaseRequestHandler):
 			query=Comment.all().filter(cq+' =',cv).order('-date')
 		else:
 			query=Comment.all().order('-date')
-		comments,pager=Pager(query=query,items_per_page=15).fetch(page_index,cache_postfix='no cache')
+		comments,pager=Pager(query=query,items_per_page=15).fetch(page_index)
 
 		self.render2('views/admin/comments.html',
 		 {
@@ -839,7 +839,7 @@ class admin_authors(BaseRequestHandler):
 
 
 		authors=User.all().filter('isAuthor =',True)
-		entries,pager=Pager(query=authors,items_per_page=15).fetch(page_index,cache_postfix='no cache')
+		entries,pager=Pager(query=authors,items_per_page=15).fetch(page_index)
 
 		self.render2('views/admin/authors.html',
 		 {
@@ -1052,7 +1052,7 @@ class FileManager(BaseRequestHandler):
 		except:
 			page_index=1
 		files = Media.all().order('-date')
-		files,links=Pager(query=files,items_per_page=15).fetch(page_index,cache_postfix='no cache')
+		files,links=Pager(query=files,items_per_page=15).fetch(page_index)
 		self.render2('views/admin/filemanager.html',{'files' : files,'pager':links})
 
 	@requires_admin

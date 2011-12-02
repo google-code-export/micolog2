@@ -215,7 +215,7 @@ class archive_by_month(BasePublicPage):
 		else:
 			lastday=datetime(int(year)+1,1,1)
 		entries=db.GqlQuery("SELECT * FROM Entry WHERE date > :1 AND date <:2 AND entrytype =:3 AND published = True ORDER BY date DESC",firstday,lastday,'post')
-		entries,links=Pager(query=entries).fetch(page_index,cache_postfix='archive_by_month_'+str(year)+'_'+str(month))
+		entries,links=Pager(query=entries).fetch(page_index,'archive_by_month_'+str(year)+'_'+str(month))
 		self.render('month',{'entries':entries,'year':year,'month':month,'pager':links})
 
 class entriesByTag(BasePublicPage):
@@ -233,7 +233,7 @@ class entriesByTag(BasePublicPage):
 
 		#this is no problem cause "tags=" is in fact "tags in"
 		entries=Entry.all().filter("published =", True).filter('tags =',slug).order("-date")
-		entries,links=Pager(query=entries,items_per_page=20).fetch(page_index, cache_postfix='entry.published.tags='+slug+'.-date')
+		entries,links=Pager(query=entries,items_per_page=20).fetch(page_index,'entry.published.tags='+slug+'.-date')
 		self.render('tag',{'entries':entries,'tag':slug,'pager':links})
 
 class SinglePost(BasePublicPage):
