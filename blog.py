@@ -163,14 +163,14 @@ class MainPage(BasePublicPage):
 							})
 
 @object_cache(key="__get_category_pcount",time=3600*24,check_db=True)
-def __get_category_post_count(category_key, cache_postfix):
+def __get_category_post_count(category_key):
 	return Entry.all().filter("published =", True).filter('categorie_keys =',category_key).count()
 
 def _get_category_post_count(category_key):
-	return __get_category_post_count(category_key,str(category_key))
+	return __get_category_post_count(category_key,cache_postfix = str(category_key))
 
 @object_cache(key='get_entries_by_category',time=3600*24, check_db=True)
-def __get_entries_by_category(categories_keys, offset, fetch_n, cache_postfix):
+def __get_entries_by_category(categories_keys, offset, fetch_n):
 	return Entry.all().filter("published =", True).filter('categorie_keys =',categories_keys).order("-date").fetch(fetch_n,offset)
 	
 def _get_entries_by_category(categories_keys, offset, fetch_n=20):

@@ -96,6 +96,8 @@ def request_cache(time=3600, check_db=True,key_parameter='cache_postfix'):
 			if (not g_blog.enable_memcache and not check_db) or (key_parameter in kwargs and kwargs[key_parameter] == 'no cache'):
 				if 'last-modified' not in response.headers:
 						response.last_modified = format_date(datetime.utcnow())
+				if key_parameter in kwargs:
+					del kwargs[key_parameter]
 				method(*args, **kwargs)
 				return
 
@@ -219,11 +221,11 @@ class Pager(object):
 		self.query_len = query_len
 
 	@object_cache(key='pager.get_query_len',time=3600*24,check_db=True)
-	def __get_query_len(query,cache_postfix):
+	def __get_query_len(query):
 		return query.count()
 
 	@object_cache(key='pager.fetch',time=3600*24,check_db=True)
-	def fetch(self, p, cache_postfix='no cache'):
+	def fetch(self, p):
 		if self.query_len is not None:
 			max_offset = self.query_len
 		elif hasattr(self.query,'__len__'):

@@ -51,7 +51,7 @@ def dateformat(creatdate):
 	return dt
 
 @object_cache(key='post_struct',time=3600*24,check_db=True)
-def _post_struct(entry, cache_postfix):
+def _post_struct(entry):
 	if not entry:
 		 raise Fault(404, "Post does not exist")
 	categories=[]
@@ -90,10 +90,10 @@ def post_struct(entry):
 	if not entry:
 		 raise Fault(404, "Post does not exist")
 	else:
-		return _post_struct(entry,entry.fullurl)
+		return _post_struct(entry,cache_postfix=entry.fullurl)
 
 @object_cache(key='post_struct',time=3600*24,check_db=True)
-def _page_struct(entry, cache_postfix):
+def _page_struct(entry):
 	if not entry:
 		 raise Fault(404, "Page does not exist")
 	categories=[]
@@ -134,7 +134,7 @@ def page_struct(entry):
 	if not entry:
 		 raise Fault(404, "Page does not exist")
 	else:
-		return _page_struct(entry,entry.fullurl)
+		return _page_struct(entry,cache_postfix = entry.fullurl)
 
 def entry_title_struct(entry):
 	if not entry:

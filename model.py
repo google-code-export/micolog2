@@ -35,6 +35,7 @@ def object_cache(key="",time=3600, check_db = True, key_parameter='cache_postfix
 			ikey = key
 			if key_parameter in kwargs:
 				if kwargs[key_parameter] == 'no cache':
+					del kwargs[key_parameter]
 					return method(*args,**kwargs)
 				ikey = ikey+'_'+kwargs[key_parameter]
 				del kwargs[key_parameter]
@@ -362,7 +363,7 @@ class Tag(db.Model):
 	tagcount = db.IntegerProperty(default=0) #可以指示拥有此tag的文章有多少个
 
 	@object_cache(key='tag.posts',time=98400,check_db=True)
-	def _posts(self, cache_postfix):
+	def _posts(self):
 		return Entry.all('entrytype =','post').filter("published =", True).filter('tags =',self)
 	
 	@property
@@ -537,7 +538,7 @@ class Entry(BaseModel):
 		self.tags=tags
 
 	@object_cache(key='entry.get_comments_by_page',time=3600,check_db=True)
-	def _get_comments_by_page(self,index,psize, cache_postfix):
+	def _get_comments_by_page(self,index,psize):
 		if g_blog.comments_order:
 			return Comment.all().filter('entry =',self).order('-date').fetch(psize,offset = (index-1) * psize)
 		else:
@@ -562,7 +563,7 @@ class Entry(BaseModel):
 			return Comment.all().filter('entry =',self).order('date')
 
 	@object_cache(key='comment.purecomments_count',time=3600*2, check_db=True)
-	def _purecomments_count(self,cache_postfix):
+	def _purecomments_count(self):
 		return self.purecomments().count()
 
 	def purecomments_count(self):
@@ -581,7 +582,7 @@ class Entry(BaseModel):
 			return Comment.all().filter('entry =',self).filter('ctype IN',[1,2]).order('date')
 
 	@object_cache(key='entry.commentstops',time=3600,check_db=True)
-	def _commentsTops(self,cache_postfix):
+	def _commentsTops(self):
 		return [c for c  in self.purecomments() if c.parent_key()==None]
 
 	def commentsTops(self):
@@ -694,7 +695,7 @@ class Entry(BaseModel):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-date').filter('date <',self.date).fetch(1)
 
 	@object_cache(key='entry.relateposts',time=3600*24, check_db=True)
-	def _relateposts(self, cache_postfix):
+	def _relateposts(self):
 		if  self._relatepost:
 			return self._relatepost
 		else:
@@ -847,7 +848,7 @@ class Comment(db.Model):
 		g_blog.tigger_action("delete_comment",self)
 
 	@object_cache(key='comment.children',time=3600*24,check_db=True)
-	def _children(self, cache_postfix):
+	def _children(self):
 		key=self.key()
 		comments=Comment.all().ancestor(self)
 		return [c for c in comments if c.parent_key()==key]
