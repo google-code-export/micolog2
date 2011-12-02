@@ -141,7 +141,7 @@ def request_cache(time=3600, check_db=True,key_parameter='cache_postfix'):
 				memcache.set(key,html,time)
 			if check_db:
 				try:
-					DBCache(cache_key=key,value=pickle.dumps(result)).put()
+					DBCache(cache_key=key,value=pickle.dumps(html)).put()
 				except :
 					logging.error('Cannot dump ' + str(html) +' using pickle.')
 
