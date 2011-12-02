@@ -117,29 +117,33 @@ def request_cache(time=3600, check_db=True,key_parameter='cache_postfix'):
 						html = None
 
 			if html:
-				 response.last_modified =html[1]
-				 _len=len(html)
-				 if _len>=3:
-					response.set_status(html[2])
-				 if _len>=4:
-					for h_key,value in html[3].items():
-						response.headers[h_key]=value
-				 response.out.write(html[0])
-			else:
-				if 'last-modified' not in response.headers:
-					response.last_modified = format_date(datetime.utcnow())
+				try:
+					 response.last_modified =html[1]
+					 _len=len(html)
+					 if _len>=3:
+						response.set_status(html[2])
+					 if _len>=4:
+						for h_key,value in html[3].items():
+							response.headers[h_key]=value
+					 response.out.write(html[0])
+					 return
+				except :
+					logging.error('error sending cached html: ' + str(html))
+		
+			if 'last-modified' not in response.headers:
+				response.last_modified = format_date(datetime.utcnow())
 
-				method(*args, **kwargs)
-				result=response.out.getvalue()
-				status_code = response._Response__status[0]
-				html = (result,response.last_modified,status_code,response.headers)
-				if g_blog.enable_memcache:
-					memcache.set(key,html,time)
-				if check_db:
-					try:
-						DBCache(cache_key=key,value=pickle.dumps(result)).put()
-					except :
-						logging.error('Cannot dump ' + str(html) +' using pickle.')
+			method(*args, **kwargs)
+			result=response.out.getvalue()
+			status_code = response._Response__status[0]
+			html = (result,response.last_modified,status_code,response.headers)
+			if g_blog.enable_memcache:
+				memcache.set(key,html,time)
+			if check_db:
+				try:
+					DBCache(cache_key=key,value=pickle.dumps(result)).put()
+				except :
+					logging.error('Cannot dump ' + str(html) +' using pickle.')
 
 		return _wrapper
 	return _decorate

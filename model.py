@@ -29,9 +29,6 @@ class DBCache(db.Model):
 def object_cache(key="",time=3600, check_db = True, key_parameter='cache_postfix'):
 	def _decorate(method):
 		def _wrapper(*args, **kwargs):
-			#for debug
-			g_blog.enable_memcache = False
-			
 			ikey = key
 			if key_parameter in kwargs:
 				if kwargs[key_parameter] == 'no cache':
