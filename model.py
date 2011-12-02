@@ -29,9 +29,6 @@ class DBCache(db.Model):
 import marshal
 
 def object_cache(key="",time=3600, check_db = True, key_parameter='cache_postfix'):
-	'''
-	method return value should be unicode
-	'''
 	def _decorate(method):
 		def _wrapper(*args, **kwargs):
 			ikey = key

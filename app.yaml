@@ -1,6 +1,6 @@
-application: lmzhao-blog-test
-version: 11
-runtime: python27
+application: micolog2
+version: alpha
+runtime: python
 api_version: 1
 
 handlers:
