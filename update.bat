@@ -1,1 +1,1 @@
-appcfg.py update ../lmzhao-blog
+appcfg.py update .

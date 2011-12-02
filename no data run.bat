@@ -1,1 +1,1 @@
-dev_appserver.py -c ..\lmzhao-blog
+dev_appserver.py -c .

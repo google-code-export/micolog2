@@ -26,8 +26,6 @@ class DBCache(db.Model):
 	value = db.BlobProperty()
 	time_stamp = db.DateTimeProperty(auto_now=True)
 
-import pickle
-
 def object_cache(key="",time=3600, check_db = True, key_parameter='cache_postfix'):
 	def _decorate(method):
 		def _wrapper(*args, **kwargs):
@@ -948,9 +946,9 @@ def InitBlogData():
 	g_blog.save()
 
 	entry=Entry(title=_("Hello world!").decode('utf8'))
-	entry.content=_('<p>Welcome to Micolog2. This is your first post. Edit or delete it, then start blogging!</p>').decode('utf8')
+	entry.content=_('<p>Welcome to Micolog. This is your first post. Edit or delete it, then start blogging!</p>').decode('utf8')
 	entry.save(True)
-	link=Link(href='http://blog.rexzhao.net',linktext=_("Rex's blog").decode('utf8'))
+	link=Link(href='http://blog.rexzhao.net',linktext="Rex's blog")
 	link.put()
 	return g_blog
 
