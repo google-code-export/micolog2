@@ -948,7 +948,7 @@ def InitBlogData():
 	entry=Entry(title=_("Hello world!").decode('utf8'))
 	entry.content=_('<p>Welcome to Micolog. This is your first post. Edit or delete it, then start blogging!</p>').decode('utf8')
 	entry.save(True)
-	link=Link(href='http://blog.rexzhao.net',linktext="Rex's blog")
+	link=Link(href='http://blog.rexzhao.com',linktext="Rex's blog")
 	link.put()
 	return g_blog
 
