@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os,logging
+import pickle
 import re
 from functools import wraps
 from google.appengine.api import users
@@ -84,7 +85,6 @@ def hostonly(method):
 def format_date(dt):
 	return dt.strftime('%a, %d %b %Y %H:%M:%S GMT')
 
-import marshal
 from model import DBCache
 def request_cache(time=3600, check_db=True,key_parameter='cache_postfix'):
 	def _decorate(method):
@@ -108,7 +108,7 @@ def request_cache(time=3600, check_db=True,key_parameter='cache_postfix'):
 			if not html and check_db:
 				db_cache = DBCache.all().filter("cache_key =",key).get()
 				if db_cache is not None and db_cache.time_stamp + timedelta(seconds = time) > datetime.now():
-					html = marshal.loads(db_cache.value)
+					html = pickle.loads(db_cache.value)
 
 			if html:
 				 response.last_modified =html[1]
@@ -130,7 +130,7 @@ def request_cache(time=3600, check_db=True,key_parameter='cache_postfix'):
 				if g_blog.enable_memcache:
 					memcache.set(key,html,time)
 				if check_db:
-					DBCache(cache_key=key,value=marshal.dumps(html)).put()
+					DBCache(cache_key=key,value=pickle.dumps(html)).put()
 
 		return _wrapper
 	return _decorate

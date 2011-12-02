@@ -26,7 +26,7 @@ class DBCache(db.Model):
 	value = db.BlobProperty()
 	time_stamp = db.DateTimeProperty(auto_now=True)
 
-import marshal
+import pickle
 
 def object_cache(key="",time=3600, check_db = True, key_parameter='cache_postfix'):
 	def _decorate(method):
@@ -46,11 +46,11 @@ def object_cache(key="",time=3600, check_db = True, key_parameter='cache_postfix
 			if check_db:
 				db_cache = DBCache.all().filter("cache_key =",ikey).get()
 				if db_cache is not None and db_cache.time_stamp + timedelta(seconds = time) > datetime.now():
-					return marshal.loads(db_cache.value)
+					return pickle.loads(db_cache.value)
 
 			result = method(*args, **kwargs)
 			if check_db:
-				DBCache(cache_key=ikey,value=marshal.dumps(result)).put()
+				DBCache(cache_key=ikey,value=pickle.dumps(result)).put()
 
 			if g_blog.enable_memcache:
 				memcache.set(ikey,result,time)
