@@ -52,11 +52,11 @@ def _get_m_pages():
 	return Entry.all().filter('entrytype =','page')\
 			.filter('published =',True)\
 			.filter('entry_parent =',0)\
-			.order('menu_order').fetch()
+			.order('menu_order').fetch(limit=1000)
 
 @object_cache(key='get_links',time=3600*24,check_db=True)
 def _get_links():
-	return Link.all().filter('linktype =','blogroll').fetch()
+	return Link.all().filter('linktype =','blogroll').fetch(limit=1000)
 
 @object_cache(key='get_archives',time=3600*24,check_db=True)
 def _get_archives():
@@ -65,11 +65,11 @@ def _get_archives():
 #seems no where used
 @object_cache(key='get_tags',time=3600*24,check_db=True)
 def _get_tags():
-	return Tag.all().fetch()
+	return Tag.all().fetch(limit=1000)
 
 @object_cache(key='get_categories',time=3600*24,check_db=True)
 def _get_categories():
-	return Category.all().fetch()
+	return Category.all().fetch(limit=1000)
 
 @object_cache(key='get_recent_comments',time=1800,check_db=True)
 def _get_recent_comments():
@@ -112,7 +112,7 @@ class BasePublicPage(BaseRequestHandler):
 		return Entry.all().filter('entrytype =','post')\
 			.filter('published =',True)\
 			.filter('sticky =',True)\
-			.order('-date').fetch()
+			.order('-date').fetch(limit=1000)
 
 class MainPage(BasePublicPage):
 	def get(self,page=1):
