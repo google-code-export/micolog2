@@ -208,7 +208,7 @@ class Blog(db.Model):
 
 	domain=db.StringProperty()
 	show_excerpt=db.BooleanProperty(default=True)
-	version=0.1 #Micolog2's version number
+	version='2.0.0' #Micolog2's version number start from 2
 	timedelta=db.FloatProperty(default=8.0)# hours #seems to be time zone specific?
 	language=db.StringProperty(default="en-us")
 
