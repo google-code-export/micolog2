@@ -221,7 +221,7 @@ class Pager(object):
 		self.query_len = query_len
 
 	@object_cache(key='pager.get_query_len',time=3600*24,check_db=True)
-	def __get_query_len(query):
+	def __get_query_len(self,query):
 		return query.count()
 
 	def fetch(self,p,cache_suffix='no cache'):
