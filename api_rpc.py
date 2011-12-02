@@ -685,7 +685,7 @@ def mt_getPostCategories(postid):
 	categories=post.categories
 	cates=[]
 	for cate in categories:
-		#cate=Category(key)
+		#cate=Category(cache_key)
 		cates.append({'categoryId' : str(cate.ID()),
 					'categoryName':cate.name,
 					'isPrimary':True
