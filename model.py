@@ -21,10 +21,44 @@ logging.info('module base reloaded')
 
 rootpath=os.path.dirname(__file__)
 
-class DBCache(db.Model):
+class ObjCache(db.Model):
 	cache_key = db.StringProperty(multiline=False)
 	value = db.BlobProperty()
-	time_stamp = db.DateTimeProperty(auto_now=True)
+	#the following fields are used at cache auto invalidation
+	#divide the cases into four basic categories
+	depend_post_id = db.IntegerProperty(default=-1) #which page's content is this cache depends on 
+	depend_url = db.StringProperty(default='') #which url is this cache depends on
+	depend_blog_roll = db.BooleanProperty(default=False) #is this cache depends on the blog roll
+	depend_page_comment = db.IntegerProperty(default=-1) #is this cache depends on the comments on a certain post
+
+	def invalidate(self):
+		memcache.delete(cache_key)
+		self.delete()
+
+	def update(self, new_value_obj):
+		memcache.set(self.cache_key,new_value_obj)
+		self.value = pickle.dumps(new_value_obj)
+		self.put()
+
+	@staticmethod
+	def create(key, value_obj, depend_post_id=-1,depend_url='',depend_blog_roll=False,depend_page_comment=-1):
+		try:
+			memcache.set(key,value_obj)
+			ObjCache(cache_key=key,
+					 value=pickle.dumps(value_obj),
+					 depend_post_id=depend_post_id,
+					 depend_url=depend_url,
+					 depend_blog_roll = depend_blog_roll,
+					 depend_page_comment = depend_page_comment
+					 ).put()
+		except Exception,e:
+			logging.error(e.message)
+
+	@staticmethod
+	def flush_all():
+		memcache.flush_all()
+		for cache in ObjCache.all():
+			cache.delete()
 
 def object_cache(key="",time=3600, check_db = True, key_parameter='cache_postfix'):
 	def _decorate(method):
@@ -43,17 +77,17 @@ def object_cache(key="",time=3600, check_db = True, key_parameter='cache_postfix
 					return result
 				
 			if check_db:
-				db_cache = DBCache.all().filter("cache_key =",ikey).get()
+				db_cache = ObjCache.all().filter("cache_key =",ikey).get()
 				if db_cache is not None and db_cache.time_stamp + timedelta(seconds = time) > datetime.now():
 					try:
 						return pickle.loads(db_cache.value)
 					except :
-						logging.error('unable to loads DBCache value :' + str(db_cache.value))
+						logging.error('unable to loads ObjCache value :' + str(db_cache.value))
 
 			result = method(*args, **kwargs)
 			if check_db:
 				try:
-					DBCache(cache_key=ikey,value=pickle.dumps(result)).put()
+					ObjCache(cache_key=ikey,value=pickle.dumps(result)).put()
 				except :
 					logging.error('unable to dump: ' + str(result))
 
@@ -416,6 +450,7 @@ class Link(db.Model):
 		g_blog.tigger_action("delete_link",self)
 
 class Entry(BaseModel):
+	entry_id = db.IntegerProperty(indexed=True,)
 	author = db.UserProperty()
 	author_name = db.StringProperty()
 	published = db.BooleanProperty(default=False)
