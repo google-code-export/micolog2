@@ -108,7 +108,11 @@ def request_cache(time=3600, check_db=True,key_parameter='cache_postfix'):
 			if not html and check_db:
 				db_cache = DBCache.all().filter("cache_key =",key).get()
 				if db_cache is not None and db_cache.time_stamp + timedelta(seconds = time) > datetime.now():
-					html = pickle.loads(db_cache.value)
+					try:
+						html = pickle.loads(db_cache.value)
+					except :
+						logging.error('Cannot load ' + str(db_cache.value) + ' using pickle.')
+						html = None
 
 			if html:
 				 response.last_modified =html[1]
@@ -130,7 +134,10 @@ def request_cache(time=3600, check_db=True,key_parameter='cache_postfix'):
 				if g_blog.enable_memcache:
 					memcache.set(key,html,time)
 				if check_db:
-					DBCache(cache_key=key,value=pickle.dumps(html)).put()
+					try:
+						DBCache(cache_key=key,value=pickle.dumps(html)).put()
+					except :
+						logging.error('Cannot dump ' + str(html) +' using pickle.')
 
 		return _wrapper
 	return _decorate

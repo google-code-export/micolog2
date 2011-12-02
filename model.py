@@ -46,11 +46,17 @@ def object_cache(key="",time=3600, check_db = True, key_parameter='cache_postfix
 			if check_db:
 				db_cache = DBCache.all().filter("cache_key =",ikey).get()
 				if db_cache is not None and db_cache.time_stamp + timedelta(seconds = time) > datetime.now():
-					return pickle.loads(db_cache.value)
+					try:
+						return pickle.loads(db_cache.value)
+					except :
+						logging.error('unable to loads DBCache value :' + str(db_cache.value))
 
 			result = method(*args, **kwargs)
 			if check_db:
-				DBCache(cache_key=ikey,value=pickle.dumps(result)).put()
+				try:
+					DBCache(cache_key=ikey,value=pickle.dumps(result)).put()
+				except :
+					logging.error('unable to dump: ' + str(result))
 
 			if g_blog.enable_memcache:
 				memcache.set(ikey,result,time)
