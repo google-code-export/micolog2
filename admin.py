@@ -4,6 +4,8 @@ import wsgiref.handlers
 ##os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 ##from django.conf import settings
 ##settings._target = None
+from cache import ObjCache
+
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 from django.utils.translation import check_for_language, activate, to_locale, get_language
 from django.conf import settings
@@ -111,7 +113,8 @@ class admin_do_action(BaseRequestHandler):
 
 	@requires_admin
 	def action_cacheclear(self):
-		memcache.flush_all()
+		#memcache.flush_all()
+		ObjCache.flush_all() #Rex @ Dec. 3, 2011
 		self.write(_('"Cache cleared successful"'))
 
 	@requires_admin

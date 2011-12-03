@@ -2,6 +2,7 @@
 ###################################################
 #this file is under GPL v3 license
 #Author: Rex  fdrex1987@gmail.com
+#some of the code are come from Micolog's code
 ##################################################
 import logging
 import pickle
