@@ -9,15 +9,13 @@ import os,logging
 from google.appengine.api import users
 from google.appengine.ext import db
 from google.appengine.ext.db import Model as DBModel
-from google.appengine.api import memcache
 from google.appengine.api import mail
 from google.appengine.api import urlfetch
 from google.appengine.api import datastore
 from datetime import datetime,timedelta
 import urllib, hashlib,urlparse
 import zipfile,re,pickle,uuid
-#from base import *
-from cache import object_cache, object_memcache, CacheDependUrlGen, get_query_count, ObjCache
+from cache import *
 
 logging.info('module base reloaded')
 
@@ -267,8 +265,8 @@ class Category(db.Model):
 			entry.put()
 		for cat in Category.all().filter('parent_cat =',self):
 			cat.delete()
-		ObjCache.invalidate(url=CacheDependUrlGen.gen_category(self.slug))
-		ObjCache.invalidate(url=CacheDependUrlGen.gen_homepage())
+		ObjCache.invalidate_multiple(url=CacheDependUrlGen.gen_category(self.slug))
+		ObjCache.invalidate_multiple(url=CacheDependUrlGen.gen_homepage())
 		
 		db.Model.delete(self)
 		g_blog.tigger_action("delete_category",self)
@@ -378,7 +376,7 @@ class Link(db.Model):
 
 
 	def delete(self):
-		ObjCache.invalidate(blog_roll=True)
+		ObjCache.invalidate_multiple(blog_roll=True)
 		db.Model.delete(self)
 		g_blog.tigger_action("delete_link",self)
 
@@ -639,8 +637,8 @@ class Entry(BaseModel):
 		self.removecache()
 
 		self.put()
-		ObjCache.invalidate(post_id=self.post_id)
-		ObjCache.invalidate(url=CacheDependUrlGen.gen_homepage())
+		ObjCache.invalidate_multiple(post_id=self.post_id)
+		ObjCache.invalidate_multiple(url=CacheDependUrlGen.gen_homepage())
 		g_blog.tigger_action("save_post",self,is_publish)
 
 	def removecache(self):
@@ -701,8 +699,8 @@ class Entry(BaseModel):
 			self.update_archive(-1)
 		self.delete_comments()
 		db.Model.delete(self)
-		ObjCache.invalidate(post_id=self.post_id)
-		ObjCache.invalidate(url=CacheDependUrlGen.gen_homepage())
+		ObjCache.invalidate_multiple(post_id=self.post_id)
+		ObjCache.invalidate_multiple(url=CacheDependUrlGen.gen_homepage())
 		
 		g_blog.tigger_action("delete_post",self)
 
@@ -791,8 +789,8 @@ class Comment(db.Model):
 		if (self.ctype == COMMENT_TRACKBACK) or (self.ctype == COMMENT_PINGBACK):
 			self.entry.trackbackcount+=1
 		self.entry.put()
-		ObjCache.invalidate(post_comments_id=self.entry.post_id)
-		ObjCache.invalidate(post_id=self.entry.post_id)
+		ObjCache.invalidate_multiple(post_comments_id=self.entry.post_id)
+		ObjCache.invalidate_multiple(post_id=self.entry.post_id)
 		return True
 
 	def delit(self):
@@ -803,8 +801,8 @@ class Comment(db.Model):
 			self.entry.trackbackcount-=1
 		if self.entry.trackbackcount<0:
 			self.entry.trackbackcount = 0
-		ObjCache.invalidate(post_comments_id=self.entry.post_id)
-		ObjCache.invalidate(post_id=self.entry.post_id)
+		ObjCache.invalidate_multiple(post_comments_id=self.entry.post_id)
+		ObjCache.invalidate_multiple(post_id=self.entry.post_id)
 		self.entry.put()
 		self.delete()
 

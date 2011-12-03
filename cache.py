@@ -22,16 +22,18 @@ class ObjCache(db.Model):
 	depend_blog_roll = db.BooleanProperty(default=False) #is this cache depends on the blog roll
 
 	def invalidate(self):
+		logging.debug('ObjCache invalidate called: ' + self.cache_key)
 		memcache.delete(self.cache_key)
 		self.delete()
 
 	def update(self, new_value_obj):
+		logging.debug('ObjCache update called: ' + self.cache_key)
 		memcache.set(self.cache_key,new_value_obj)
 		self.value = pickle.dumps(new_value_obj)
 		self.put()
 
-	@staticmethod
-	def invalidate(post_id=None,post_comments_id=None, url=None,blog_roll=None):
+	@classmethod
+	def invalidate_multiple(cls, post_id=None,post_comments_id=None, url=None,blog_roll=None):
 		query = ObjCache.all()
 		if post_id is not None:
 			query = query.filter('depend_post_id =',post_id)
@@ -44,8 +46,8 @@ class ObjCache(db.Model):
 		for obj in query:
 			obj.invalidate()
 
-	@staticmethod
-	def get(key_name):
+	@classmethod
+	def get(cls,key_name):
 		result = memcache.get(key_name)
 		if result is not None:
 			return result
@@ -58,8 +60,8 @@ class ObjCache(db.Model):
 		except Exception, e:
 			logging.error(e.message)
 
-	@staticmethod
-	def create(key, value_obj, depend_post_id=-1,depend_comments_id=-1, depend_url='',depend_blog_roll=False):
+	@classmethod
+	def create(cls, key, value_obj, depend_post_id=-1,depend_comments_id=-1, depend_url='',depend_blog_roll=False):
 		try:
 			memcache.set(key,value_obj)
 			ObjCache(cache_key=key,
@@ -69,14 +71,16 @@ class ObjCache(db.Model):
 					 depend_url=depend_url,
 					 depend_blog_roll = depend_blog_roll
 					 ).put()
+			logging.debug("ObjCache created: " + key)
 		except Exception,e:
 			logging.error(e.message)
 
-	@staticmethod
-	def flush_all():
+	@classmethod
+	def flush_all(cls):
 		'''
 		This is faster than invalidate with default parameter values since memcache only need one call
 		'''
+		logging.debug('ObjCache flush all called')
 		memcache.flush_all()
 		for cache in ObjCache.all():
 			cache.delete()
@@ -134,12 +138,15 @@ def object_cache(key_prefix='',
 				del kwargs[cache_control_parameter_name]
 
 			if cache_control == 'no cache':
+				logging.debug('object_cache: no_cache for '+key)
 				return method(*args, **kwargs)
 
 			result = ObjCache.get(key)
 			if result is not None:
+				logging.debug('object_cache: result found for '+key)
 				return result
-			
+
+			logging.debug('object_cache: result not found for '+key)
 			result = method(*args, **kwargs)
 			ObjCache.create(key,result,**cache_args)
 			return result
@@ -167,12 +174,15 @@ def object_memcache(key_prefix='',time=3600,
 				del kwargs[cache_control_parameter_name]
 
 			if cache_control == 'no cache':
+				logging.debug('object_memcache: no_cache for '+key)
 				return method(*args, **kwargs)
 
 			result = memcache.get(key)
 			if result is not None:
+				logging.debug('object_memcache: found key for '+key)
 				return result
 
+			logging.debug('object_memcache: not found key for '+key)
 			result = method(*args, **kwargs)
 			memcache.set(key,result,time)
 			return result
@@ -218,20 +228,22 @@ def request_cache(key_prefix='',
 				cache_control = kwargs[cache_control_parameter_name]
 				del kwargs[cache_control_parameter_name]
 
-			if cache_control == 'no cache':
-				if 'last-modified' not in response.headers:
-						response.last_modified = format_date(datetime.utcnow())
-				method(*args, **kwargs)
-				return
-
 			key = key_prefix
 			if key == '':
 				key = request.path_qs
 			else:
 				key = key+'_'+request.path_qs
 
+			if cache_control == 'no cache':
+				logging.debug('request_cache: no_cache for '+key)
+				if 'last-modified' not in response.headers:
+						response.last_modified = format_date(datetime.utcnow())
+				method(*args, **kwargs)
+				return
+
 			html= ObjCache.get(key)
 			if html:
+				logging.debug('request_cache: found cache for '+key)
 				try:
 					response.last_modified =html[1]
 					_len=len(html)
@@ -244,6 +256,8 @@ def request_cache(key_prefix='',
 					return
 				except Exception,e:
 					logging.error(e.message)
+
+			logging.debug('request_cache: not found cache for '+key)
 
 			if 'last-modified' not in response.headers:
 				response.last_modified = format_date(datetime.utcnow())
