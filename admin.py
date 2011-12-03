@@ -490,14 +490,13 @@ class admin_entry(BaseRequestHandler):
 				entry.password=password
 				entry.sticky=sticky
 				if cats:
-
-				   for cate in cats:
+					for cate in cats:
 						c=Category.all().filter('slug =',cate)
 						if c:
 							newcates.append(c[0].key())
 				entry.categorie_keys=newcates;
-
 				entry.save(published)
+
 				if published:
 					smsg=_('Saved ok. <a href="/%(link)s" target="_blank">View it now!</a>')
 				else:
@@ -557,7 +556,6 @@ class admin_entry(BaseRequestHandler):
 				except:
 					vals.update({'result':False,'msg':_('Error:Entry can''t been saved.')})
 					self.render2('views/admin/entry.html',vals)
-
 
 class admin_entries(BaseRequestHandler):
 	@requires_admin

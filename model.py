@@ -17,7 +17,7 @@ from datetime import datetime,timedelta
 import urllib, hashlib,urlparse
 import zipfile,re,pickle,uuid
 #from base import *
-from cache import object_cache, object_memcache, CacheDependUrlGen, get_query_count
+from cache import object_cache, object_memcache, CacheDependUrlGen, get_query_count, ObjCache
 
 logging.info('module base reloaded')
 
@@ -636,6 +636,9 @@ class Entry(BaseModel):
 
 		self.put()
 		g_blog.tigger_action("save_post",self,is_publish)
+		
+		ObjCache.invalidate(post_id=self.post_id)
+		ObjCache.invalidate(url=CacheDependUrlGen.gen_homepage())
 
 	def removecache(self):
 		memcache.delete('/')
