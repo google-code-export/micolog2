@@ -21,7 +21,6 @@ from google.appengine.ext import db
 from datetime import datetime ,timedelta
 import base64,random
 from django.utils import simplejson
-from cache import request_cache, object_cache, CacheDependUrlGen
 import filter  as myfilter
 from django.template.loader import *
 ##settings.configure(LANGUAGE_CODE = 'zh-cn')

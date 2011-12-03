@@ -9,7 +9,7 @@ import pickle
 from google.appengine.ext import db
 from google.appengine.api import memcache
 from datetime import datetime
-from base import format_date
+
 
 class ObjCache(db.Model):
 	cache_key = db.StringProperty(multiline=False)
@@ -182,6 +182,9 @@ def object_memcache(key_prefix='',time=3600,
 @object_cache(key_prefix='get_query_count')
 def get_query_count(query):
 	return query.count()
+
+def format_date(dt):
+	return dt.strftime('%a, %d %b %Y %H:%M:%S GMT')
 
 def request_cache(key_prefix='',
                  depend_post_id_parameter_name='cache_depend_post_id',
