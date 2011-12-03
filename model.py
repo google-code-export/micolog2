@@ -267,6 +267,9 @@ class Category(db.Model):
 			entry.put()
 		for cat in Category.all().filter('parent_cat =',self):
 			cat.delete()
+		ObjCache.invalidate(url=CacheDependUrlGen.gen_category(self.slug))
+		ObjCache.invalidate(url=CacheDependUrlGen.gen_homepage())
+		
 		db.Model.delete(self)
 		g_blog.tigger_action("delete_category",self)
 
@@ -375,6 +378,7 @@ class Link(db.Model):
 
 
 	def delete(self):
+		ObjCache.invalidate(blog_roll=True)
 		db.Model.delete(self)
 		g_blog.tigger_action("delete_link",self)
 
@@ -787,7 +791,8 @@ class Comment(db.Model):
 		if (self.ctype == COMMENT_TRACKBACK) or (self.ctype == COMMENT_PINGBACK):
 			self.entry.trackbackcount+=1
 		self.entry.put()
-		memcache.delete("/"+self.entry.link)
+		ObjCache.invalidate(post_comments_id=self.entry.post_id)
+		ObjCache.invalidate(post_id=self.entry.post_id)
 		return True
 
 	def delit(self):
@@ -798,8 +803,11 @@ class Comment(db.Model):
 			self.entry.trackbackcount-=1
 		if self.entry.trackbackcount<0:
 			self.entry.trackbackcount = 0
+		ObjCache.invalidate(post_comments_id=self.entry.post_id)
+		ObjCache.invalidate(post_id=self.entry.post_id)
 		self.entry.put()
 		self.delete()
+
 
 	def put(self):
 		g_blog.tigger_action("pre_comment",self)

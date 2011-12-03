@@ -622,8 +622,6 @@ class admin_categories(BaseRequestHandler):
 				cat=Category.get(key)
 				if cat:
 					cat.delete()
-					ObjCache.invalidate(url=CacheDependUrlGen.gen_category(cat.slug))
-					ObjCache.invalidate(url=CacheDependUrlGen.gen_homepage())
 		finally:
 			self.redirect('/admin/categories')
 
@@ -661,7 +659,6 @@ class admin_comments(BaseRequestHandler):
 			linkcheck= self.request.get_all('checks')
 			entrykeys=[]
 			for key in linkcheck:
-
 				comment=Comment.get(key)
 				comment.delit()
 				entrykeys.append(comment.entry.key())

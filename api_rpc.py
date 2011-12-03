@@ -90,11 +90,12 @@ def _post_struct(entry):
 
 def post_struct(entry):
 	if not entry:
-		raise Fault(404, "Post does not exist")
+		 raise Fault(404, "Post does not exist")
 	else:
 		return _post_struct(entry,cache_key=str(entry.post_id),cache_depend_post_id=entry.post_id)
 
-def page_struct(entry):
+@object_cache(key='post_struct',time=3600*24,check_db=True)
+def _page_struct(entry):
 	if not entry:
 		 raise Fault(404, "Page does not exist")
 	categories=[]
@@ -130,6 +131,12 @@ def page_struct(entry):
 		struct['date_created_gmt'] = format_date(entry.date)
 
 	return struct
+
+def page_struct(entry):
+	if not entry:
+		 raise Fault(404, "Page does not exist")
+	else:
+		return _page_struct(entry,cache_postfix = entry.fullurl)
 
 def entry_title_struct(entry):
 	if not entry:
@@ -190,9 +197,9 @@ def metaWeblog_newPost(blogid, struct, publish):
 
 	newcates=[]
 	for cate in cates:
-	  c=Category.all().filter('name =',cate)
-	  if c:
-		  newcates.append(c[0].key())
+		c=Category.all().filter('name =',cate)
+		if c:
+			newcates.append(c[0].key())
 	entry=Entry(title = struct['title'],
 			content = struct['description'],
 			categorie_keys=newcates
@@ -408,6 +415,8 @@ def wp_getOptions(blogid,options):
 								'value':getattr(g_blog,option)}
 	return mdict
 
+#didn't trigger the autovalidation here, should I?
+#adding a new category is most times together with adding a new post
 @checkauth()
 def wp_newCategory(blogid,struct):
 	name=struct['name']
@@ -542,6 +551,7 @@ def wp_deleteComment(blogid,commentid):
 
 	except:
 		return False
+
 @checkauth()
 def wp_editComment(blogid,commentid,struct):
 	try:
