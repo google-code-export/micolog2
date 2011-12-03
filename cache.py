@@ -61,13 +61,13 @@ class ObjCache(db.Model):
 			logging.error(e.message)
 
 	@classmethod
-	def create(cls, key, value_obj, depend_post_id=-1,depend_comments_id=-1, depend_url='',depend_blog_roll=False):
+	def create(cls, key, value_obj, depend_post_id=-1,depend_post_comments=-1, depend_url='',depend_blog_roll=False):
 		try:
 			memcache.set(key,value_obj)
 			ObjCache(cache_key=key,
 					 value=pickle.dumps(value_obj),
 					 depend_post_id=depend_post_id,
-			         depend_comments_id = depend_comments_id,
+			         depend_post_comments = depend_post_comments,
 					 depend_url=depend_url,
 					 depend_blog_roll = depend_blog_roll
 					 ).put()
