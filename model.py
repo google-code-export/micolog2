@@ -635,10 +635,9 @@ class Entry(BaseModel):
 		self.removecache()
 
 		self.put()
-		g_blog.tigger_action("save_post",self,is_publish)
-		
 		ObjCache.invalidate(post_id=self.post_id)
 		ObjCache.invalidate(url=CacheDependUrlGen.gen_homepage())
+		g_blog.tigger_action("save_post",self,is_publish)
 
 	def removecache(self):
 		memcache.delete('/')
@@ -698,6 +697,9 @@ class Entry(BaseModel):
 			self.update_archive(-1)
 		self.delete_comments()
 		db.Model.delete(self)
+		ObjCache.invalidate(post_id=self.post_id)
+		ObjCache.invalidate(url=CacheDependUrlGen.gen_homepage())
+		
 		g_blog.tigger_action("delete_post",self)
 
 class User(db.Model):
