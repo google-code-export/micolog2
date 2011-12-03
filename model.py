@@ -791,6 +791,17 @@ class Comment(db.Model):
 		self.entry.put()
 		ObjCache.invalidate_multiple(post_comments_id=self.entry.post_id)
 		ObjCache.invalidate_multiple(post_id=self.entry.post_id)
+		#TODO: need improve, the following is just a work around
+		#invalide the cache only for HomePage, update the cache for basic info
+		homepage_cache = ObjCache.all().filter('cache_key =','HomePage_/').get()
+		if homepage_cache is not None:
+			homepage_cache.invalidate()
+		basic_info = ObjCache.get('get_basic_info')
+		if basic_info is not None:
+			basic_info['recent_comments']=Comment.all().order('-date').fetch(5)
+			basic_info_cache = ObjCache.all().filter('cache_key =','get_basic_info').get()
+			if basic_info_cache is not None:
+				basic_info_cache.update(basic_info)
 		return True
 
 	def delit(self):

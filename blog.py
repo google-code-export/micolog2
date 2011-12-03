@@ -47,59 +47,30 @@ def doRequestPostHandle(old_handler,new_handler,**args):
 		new_handler.initialize(old_handler.request,old_handler.response)
 		return  new_handler.post(**args)
 
-@object_cache(key_prefix='get_m_pages')
-def __get_m_pages():
-	return Entry.all().filter('entrytype =','page')\
+@object_cache(key_prefix='get_basic_info')
+def _get_basic_info():
+	return {
+		'menu_pages':
+			Entry.all().filter('entrytype =','page')\
 			.filter('published =',True)\
 			.filter('entry_parent =',0)\
-			.order('menu_order').fetch(limit=1000)
-
-def _get_m_pages():
-	return __get_m_pages(cache_depend_url=CacheDependUrlGen.gen_homepage())
-
-@object_cache(key_prefix='get_links')
-def __get_links():
-	return Link.all().filter('linktype =','blogroll').fetch(limit=1000)
-
-def _get_links():
-	return __get_links(cache_depend_blog_roll=True)
-
-@object_cache(key_prefix='get_archives')
-def __get_archives():
-	return Archive.all().order('-year').order('-month').fetch(12)
-
-def _get_archives():
-	return __get_archives(cache_depend_url=CacheDependUrlGen.gen_homepage())
-
-@object_cache(key_prefix='get_tags')
-def __get_tags():
-	return Tag.all().fetch(limit=1000)
-
-def _get_tags():
-	return __get_tags(cache_depend_url=CacheDependUrlGen.gen_homepage())
-
-@object_cache(key_prefix='get_categories')
-def __get_categories():
-	return Category.all().fetch(limit=1000)
-
-def _get_categories():
-	return __get_categories(cache_depend_url=CacheDependUrlGen.gen_homepage())
-
-#caching this is not worthy
-def _get_recent_comments():
-	return Comment.all().order('-date').fetch(5)
+			.order('menu_order').fetch(limit=1000),
+		'categories':
+			Category.all().fetch(limit=1000),
+		'blogroll':
+			Link.all().filter('linktype =','blogroll').fetch(limit=1000),
+		'archives':
+			Archive.all().order('-year').order('-month').fetch(12),
+		'alltags':
+			Tag.all().order('-tagcount').fetch(limit=50),
+		'recent_comments':
+	        Comment.all().order('-date').fetch(5)
+	}
 
 class BasePublicPage(BaseRequestHandler):
 	def initialize(self, request, response):
 		BaseRequestHandler.initialize(self,request, response)
-		self.template_vals.update({
-						'menu_pages':_get_m_pages(),
-						'categories':_get_categories(),
-						'blogroll':_get_links(),
-						'archives':_get_archives(),
-						'alltags':_get_tags(),#seems no code uses this. is this used for TagCloud? This is costly
-						'recent_comments':_get_recent_comments()
-		})
+		self.template_vals.update(_get_basic_info(cache_depend_url=CacheDependUrlGen.gen_homepage(),cache_depend_blog_roll=True))
 
 	def m_list_pages(self):
 		menu_pages=[]
@@ -181,7 +152,6 @@ class MainPage(BasePublicPage):
 						'pagecount':max_page,
 						'postscounts':entrycount
 							})
-
 
 def _get_category_post_count(category_key):
 	query = Entry.all().filter("published =", True).filter('categorie_keys =',category_key)
