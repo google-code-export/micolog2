@@ -147,6 +147,38 @@ def object_cache(key_prefix='',
 		return _wrapper
 	return _decorate
 
+def object_memcache(key_prefix='',time=3600,
+                 key_parameter_name='cache_key',
+                 cache_control_parameter_name='cache_control'):
+	'''
+	available options for cache control are: no_cache, cache
+	default option is cache
+	'''
+	def _decorate(method):
+		def _wrapper(*args, **kwargs):
+			key = key_prefix
+			if key_parameter_name in kwargs:
+				key = key+'_'+kwargs[key_parameter_name]
+				del kwargs[key_parameter_name]
+
+			cache_control = 'cache'
+			if cache_control_parameter_name in kwargs:
+				cache_control = kwargs[cache_control_parameter_name]
+				del kwargs[cache_control_parameter_name]
+
+			if cache_control == 'no cache':
+				return method(*args, **kwargs)
+
+			result = memcache.get(key)
+			if result is not None:
+				return result
+
+			result = method(*args, **kwargs)
+			memcache.set(key,result,time)
+			return result
+		return _wrapper
+	return _decorate
+
 @object_cache(key_prefix='get_query_count')
 def get_query_count(query):
 	return query.count()

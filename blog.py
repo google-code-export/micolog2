@@ -48,31 +48,45 @@ def doRequestPostHandle(old_handler,new_handler,**args):
 		new_handler.initialize(old_handler.request,old_handler.response)
 		return  new_handler.post(**args)
 
-@object_cache(key='get_m_pages',time=3600*24,check_db=True)
-def _get_m_pages():
+@object_cache(key_prefix='get_m_pages')
+def __get_m_pages():
 	return Entry.all().filter('entrytype =','page')\
 			.filter('published =',True)\
 			.filter('entry_parent =',0)\
 			.order('menu_order').fetch(limit=1000)
 
-@object_cache(key='get_links',time=3600*24,check_db=True)
-def _get_links():
+def _get_m_pages():
+	return __get_m_pages(cache_depend_url=CacheDependUrlGen.gen_homepage())
+
+@object_cache(key_prefix='get_links')
+def __get_links():
 	return Link.all().filter('linktype =','blogroll').fetch(limit=1000)
 
-@object_cache(key='get_archives',time=3600*24,check_db=True)
-def _get_archives():
+def _get_links():
+	return __get_links(cache_depend_blog_roll=True)
+
+@object_cache(key_prefix='get_archives')
+def __get_archives():
 	return Archive.all().order('-year').order('-month').fetch(12)
 
-#seems no where used
-@object_cache(key='get_tags',time=3600*24,check_db=True)
-def _get_tags():
+def _get_archives():
+	return __get_archives(cache_depend_url=CacheDependUrlGen.gen_homepage())
+
+@object_cache(key_prefix='get_tags')
+def __get_tags():
 	return Tag.all().fetch(limit=1000)
 
-@object_cache(key='get_categories',time=3600*24,check_db=True)
-def _get_categories():
+def _get_tags():
+	return __get_tags(cache_depend_url=CacheDependUrlGen.gen_homepage())
+
+@object_cache(key_prefix='get_categories')
+def __get_categories():
 	return Category.all().fetch(limit=1000)
 
-@object_cache(key='get_recent_comments',time=1800,check_db=True)
+def _get_categories():
+	return __get_categories(cache_depend_url=CacheDependUrlGen.gen_homepage())
+
+#caching this is not worthy
 def _get_recent_comments():
 	return Comment.all().order('-date').fetch(5)
 
@@ -84,7 +98,7 @@ class BasePublicPage(BaseRequestHandler):
 						'categories':_get_categories(),
 						'blogroll':_get_links(),
 						'archives':_get_archives(),
-						#'alltags':_get_tags(), #TODO_FUTURE: this seems to be used by nowhere and consume a lot, just comment is out for now
+						'alltags':_get_tags(),#seems no code uses this. is this used for TagCloud? This is costly
 						'recent_comments':_get_recent_comments()
 		})
 
@@ -108,8 +122,11 @@ class BasePublicPage(BaseRequestHandler):
 				ret+='<li class="%s"><a href="/%s" target="%s">%s</a></li>'%( current,page.link, page.target,page.title)
 		return ret
 
-	@object_cache(key='basepublicpage.sticky_entries',time=3600*24,check_db=True)
 	def sticky_entrys(self):
+		return self._sticky_entrys(cache_depend_url=CacheDependUrlGen.gen_homepage())
+
+	@object_cache(key_prefix='sticky_entries')
+	def _sticky_entrys(self):
 		return Entry.all().filter('entrytype =','post')\
 			.filter('published =',True)\
 			.filter('sticky =',True)\
@@ -166,19 +183,14 @@ class MainPage(BasePublicPage):
 						'postscounts':entrycount
 							})
 
-@object_cache(key="__get_category_pcount",time=3600*24,check_db=True)
-def __get_category_post_count(category_key):
-	return Entry.all().filter("published =", True).filter('categorie_keys =',category_key).count()
 
 def _get_category_post_count(category_key):
-	return __get_category_post_count(category_key,cache_postfix = str(category_key))
+	query = Entry.all().filter("published =", True).filter('categorie_keys =',category_key)
+	return get_query_count(query, cache_key='category_post_count_'+str(category_key),cache_depend_url=CacheDependUrlGen.gen_homepage() )
 
-@object_cache(key='get_entries_by_category',time=3600*24, check_db=True)
-def __get_entries_by_category(categories_keys, offset, fetch_n):
+#the whole page is cached, so no need to cache this function
+def _get_entries_by_category(categories_keys, offset, fetch_n):
 	return Entry.all().filter("published =", True).filter('categorie_keys =',categories_keys).order("-date").fetch(fetch_n,offset)
-	
-def _get_entries_by_category(categories_keys, offset, fetch_n=20):
-	return __get_entries_by_category(categories_keys,offset,fetch_n,cache_postfix=str(categories_keys)+'_'+str(offset)+'_'+str(fetch_n))
 
 class entriesByCategory(BasePublicPage):
 	def get(self,slug):

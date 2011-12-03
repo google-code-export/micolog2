@@ -17,6 +17,8 @@ from datetime import datetime,timedelta
 import urllib, hashlib,urlparse
 import zipfile,re,pickle,uuid
 #from base import *
+from cache import object_cache, object_memcache, CacheDependUrlGen, get_query_count
+
 logging.info('module base reloaded')
 
 rootpath=os.path.dirname(__file__)
@@ -222,16 +224,22 @@ class Blog(db.Model):
 	def rootpath(self):
 		return rootpath
 
-	@object_cache(key='blog.hotposts',time=3600*24,check_db=True)
+	@object_memcache(key_prefix='hotposts',time=3600)
 	def hotposts(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-readtimes').fetch(8)
 
-	@object_cache(key="blog.recentposts",time=3600*24,check_db=True)
 	def recentposts(self):
+		return self.__recent_posts(cache_depend_url=CacheDependUrlGen.gen_homepage())
+
+	@object_cache(key_prefix='recent_posts')
+	def __recent_posts(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-date').fetch(8)
 
-	@object_cache("blog.postscount",time=86400,check_db=True)
 	def postscount(self):
+		return self.__postscount(cache_depend_url=CacheDependUrlGen.gen_homepage())
+
+	@object_cache(key_prefix='blog.postscount')
+	def __postscount(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-date').count()
 
 class Category(db.Model):
@@ -245,9 +253,9 @@ class Category(db.Model):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).filter('categorie_keys =',self)
 
 	@property
-	@object_cache(key="category.count",time=96400,check_db=True)
 	def count(self):
-		return self.posts.count()
+		query = Entry.all().filter('entrytype =','post').filter("published =", True).filter('categorie_keys =',self)
+		return get_query_count(query,cache_key='category_'+self.slug,cache_depend_url=CacheDependUrlGen.gen_homepage())
 
 	def put(self):
 		db.Model.put(self)
@@ -294,15 +302,19 @@ class Category(db.Model):
 			cate=Category.all().filter('uid =',id).get()
 			return cate
 
+	#no need to cache this
 	@property
 	def children(self):
 		key=self.key()
 		return [c for c in Category.all().filter('parent_cat =',self)]
 
 	@classmethod
-	@object_cache(key="category.alltops",time=98400,check_db=True)
-	def allTops(self):
-		return [c for c in Category.all() if not c.parent_cat]
+	def allTops(cls):
+		@object_cache(key_prefix="category.alltops")
+		def __allTops():
+			return [c for c in Category.all() if not c.parent_cat]
+		
+		return __allTops(cache_depend_url=CacheDependUrlGen.gen_homepage())
 
 class Archive(db.Model):
 	monthyear = db.StringProperty(multiline=False)
@@ -315,13 +327,8 @@ class Tag(db.Model):
 	tag = db.StringProperty(multiline=False)
 	tagcount = db.IntegerProperty(default=0) #可以指示拥有此tag的文章有多少个
 
-	@object_cache(key='tag.posts',time=98400,check_db=True)
-	def _posts(self):
-		return Entry.all('entrytype =','post').filter("published =", True).filter('tags =',self)
-	
-	@property
 	def posts(self):
-		return self._posts(cache_postfix=self.tag)
+		return Entry.all('entrytype =','post').filter("published =", True).filter('tags =',self)
 
 	@classmethod
 	def add(cls,value):
@@ -490,7 +497,7 @@ class Entry(BaseModel):
 			Tag.add(v)
 		self.tags=tags
 
-	@object_cache(key='entry.get_comments_by_page',time=3600,check_db=True)
+	@object_cache(key_prefix='entry.get_comments_by_page')
 	def _get_comments_by_page(self,index,psize):
 		if g_blog.comments_order:
 			return Comment.all().filter('entry =',self).order('-date').fetch(psize,offset = (index-1) * psize)
@@ -498,7 +505,9 @@ class Entry(BaseModel):
 			return Comment.all().filter('entry =',self).order('date').fetch(psize,offset = (index-1) * psize)
 
 	def get_comments_by_page(self,index,psize):
-		return self._get_comments_by_page(index,psize,cache_postfix=str(self.post_id) + '_'+str(index)+'-'+str(psize))
+		return self._get_comments_by_page(index,psize,
+		                                  cache_key=str(index)+'_'+str(psize),
+		                                  cache_depend_post_comments_id=self.post_id)
 
 	@property
 	def strtags(self):
@@ -508,19 +517,18 @@ class Entry(BaseModel):
 	def edit_url(self):
 		return '/admin/%s?key=%s&action=edit'%(self.entrytype,self.key())
 
-	#TODO_FUTURE: check return type, it should be a query object
 	def comments(self):
 		if g_blog.comments_order:
 			return Comment.all().filter('entry =',self).order('-date')
 		else:
 			return Comment.all().filter('entry =',self).order('date')
 
-	@object_cache(key='comment.purecomments_count',time=3600*2, check_db=True)
-	def _purecomments_count(self):
-		return self.purecomments().count()
-
 	def purecomments_count(self):
-		return self._purecomments_count(cache_postfix=str(self.post_id))
+		return get_query_count(
+			query = self.purecomments(),
+			cache_key = 'purecomments_count'+str(self.post_id),
+			cache_depend_post_comments_id = self.post_id)
+
 
 	def purecomments(self):
 		if g_blog.comments_order:
@@ -534,12 +542,9 @@ class Entry(BaseModel):
 		else:
 			return Comment.all().filter('entry =',self).filter('ctype IN',[1,2]).order('date')
 
-	@object_cache(key='entry.commentstops',time=3600,check_db=True)
-	def _commentsTops(self):
-		return [c for c  in self.purecomments() if c.parent_key()==None]
-
-	def commentsTops(self):
-		return self._commentsTops(cache_postfix=str(self.post_id))
+	#seems nowhere uses
+	#def commentsTops(self):
+	#	return [c for c  in self.purecomments() if c.parent_key()==None]
 
 	def delete_comments(self):
 		cmts = Comment.all().filter('entry =',self)
@@ -647,7 +652,7 @@ class Entry(BaseModel):
 	def prev(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-date').filter('date <',self.date).fetch(1)
 
-	@object_cache(key='entry.relateposts',time=3600*24, check_db=True)
+	@object_cache(key_prefix='entry.relateposts')
 	def _relateposts(self):
 		if  self._relatepost:
 			return self._relatepost
@@ -672,7 +677,7 @@ class Entry(BaseModel):
 
 	@property
 	def relateposts(self):
-		return self._relateposts(cache_postfix=str(self.post_id))
+		return self._relateposts(cache_key=str(self.post_id),cache_depend_url=CacheDependUrlGen.gen_homepage())
 
 	@property
 	def trackbackurl(self):
@@ -800,15 +805,12 @@ class Comment(db.Model):
 		db.Model.delete(self)
 		g_blog.tigger_action("delete_comment",self)
 
-	@object_cache(key='comment.children',time=3600*24,check_db=True)
-	def _children(self):
+	#seems nowhere uses
+	@property
+	def children(self):
 		key=self.key()
 		comments=Comment.all().ancestor(self)
 		return [c for c in comments if c.parent_key()==key]
-
-	@property
-	def children(self):
-		return self._children(cache_postfix=str(self.weburl))
 
 	def store(self, **kwargs):
 		rpc = datastore.GetRpcFromKwargs(kwargs)
