@@ -600,11 +600,8 @@ class admin_categories(BaseRequestHandler):
 		except:
 			page_index=1
 
-
-
-
 		cats=Category.allTops()
-		entries,pager=Pager(cats.count(),query=cats,items_per_page=15).fetch(page_index, cache_control='no_cache')
+		entries,pager=Pager(len(cats),query=cats,items_per_page=15).fetch(page_index, cache_control='no_cache')
 
 		self.render2('views/admin/categories.html',
 		 {

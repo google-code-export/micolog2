@@ -253,7 +253,7 @@ class SinglePost(BasePublicPage):
 		if postid is None:
 			slug=urldecode(slug)
 			entry = Entry.all().filter("published =", True).filter('link =', slug).get()
-			if not entry or len(entry) == 0:
+			if not entry:
 				return self.error(404)
 			else:
 				postid = entry.post_id
@@ -467,9 +467,11 @@ class CommentsFeedHandler(BaseRequestHandler):
 	#TODO: see if this url is frequently used. If so, consider cache it using url dependence
 	def get(self,tags=None):
 		comments = Comment.all().order('-date').filter('ctype =',0).fetch(10)
+		last_updated = ''
 		if comments and comments[0]:
 			last_updated = comments[0].date
 			last_updated = last_updated.strftime("%a, %d %b %Y %H:%M:%S +0000")
+
 		for e in comments:
 			e.formatted_date = e.date.strftime("%a, %d %b %Y %H:%M:%S +0000")
 		self.response.headers['Content-Type'] = 'application/rss+xml'

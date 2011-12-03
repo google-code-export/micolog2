@@ -311,11 +311,7 @@ class Category(db.Model):
 
 	@classmethod
 	def allTops(cls):
-		@object_cache(key_prefix="category.alltops")
-		def __allTops():
 			return [c for c in Category.all() if not c.parent_cat]
-		
-		return __allTops(cache_depend_url=CacheDependUrlGen.gen_homepage())
 
 class Archive(db.Model):
 	monthyear = db.StringProperty(multiline=False)
