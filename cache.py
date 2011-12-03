@@ -147,6 +147,10 @@ def object_cache(key_prefix='',
 		return _wrapper
 	return _decorate
 
+@object_cache(key_prefix='get_query_count')
+def get_query_count(query):
+	return query.count()
+
 def request_cache(key_prefix='',
                  depend_post_id_parameter_name='cache_depend_post_id',
                  depend_post_comments_id_parameter_name='cache_depend_post_comments_id',

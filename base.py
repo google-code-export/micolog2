@@ -26,6 +26,7 @@ from datetime import datetime
 import urllib
 import traceback
 import micolog_template
+from cache import *
 
 logging.info('module base reloaded')
 def urldecode(value):
@@ -151,7 +152,7 @@ class util:
 
 class Pager(object):
 
-	def __init__(self, model=None,query=None, items_per_page=10, query_len=None):
+	def __init__(self, query_len, model=None,query=None, items_per_page=10):
 		if model:
 			self.query = model.all()
 		else:
@@ -160,22 +161,9 @@ class Pager(object):
 		self.items_per_page = items_per_page
 		self.query_len = query_len
 
-	@object_cache(key='pager.get_query_len',time=3600*24,check_db=True)
-	def __get_query_len(self,query):
-		return query.count()
-
-	def fetch(self,p,cache_suffix='no cache'):
-		return self._fetch(p,cache_suffix,cache_postfix=cache_suffix)
-
-	@object_cache(key='pager.fetch',time=3600*24,check_db=True)
-	def _fetch(self, p, cache_suffix):
-		if self.query_len is not None:
-			max_offset = self.query_len
-		elif hasattr(self.query,'__len__'):
-			max_offset=len(self.query)
-		else:
-			max_offset = self.__get_query_len(self.query,cache_postfix=cache_suffix)
-			
+	@object_cache(key_prefix='pager.fetch')
+	def fetch(self, p):
+		max_offset = self.query_len
 		n = max_offset / self.items_per_page
 		if max_offset % self.items_per_page != 0:
 			n += 1
