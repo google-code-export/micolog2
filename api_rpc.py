@@ -15,7 +15,6 @@ import app.mktimefix as datetime
 from SimpleXMLRPCServer import SimpleXMLRPCDispatcher
 from functools import wraps
 from django.utils.html import strip_tags
-from cache import object_cache
 
 sys.path.append('modules')
 from base import *
@@ -52,8 +51,7 @@ def dateformat(creatdate):
 		dt=datetime.strptime(creatdate, "%Y%m%dT%H:%M:%SZ")
 	return dt
 
-@object_cache(key_prefix='post_struct')
-def _post_struct(entry):
+def post_struct(entry):
 	if not entry:
 		 raise Fault(404, "Post does not exist")
 	categories=[]
@@ -88,14 +86,7 @@ def _post_struct(entry):
 
 	return struct
 
-def post_struct(entry):
-	if not entry:
-		 raise Fault(404, "Post does not exist")
-	else:
-		return _post_struct(entry,cache_key=str(entry.post_id),cache_depend_post_id=entry.post_id)
-
-@object_cache(key='post_struct',time=3600*24,check_db=True)
-def _page_struct(entry):
+def page_struct(entry):
 	if not entry:
 		 raise Fault(404, "Page does not exist")
 	categories=[]
@@ -131,12 +122,6 @@ def _page_struct(entry):
 		struct['date_created_gmt'] = format_date(entry.date)
 
 	return struct
-
-def page_struct(entry):
-	if not entry:
-		 raise Fault(404, "Page does not exist")
-	else:
-		return _page_struct(entry,cache_postfix = entry.fullurl)
 
 def entry_title_struct(entry):
 	if not entry:
@@ -524,7 +509,6 @@ def wp_editPage(blogid,pageid,struct,publish):
 	entry.save(True)
 
 	return True
-
 
 @checkauth()
 def wp_deletePage(blogid,pageid):
