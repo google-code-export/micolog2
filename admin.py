@@ -619,10 +619,11 @@ class admin_categories(BaseRequestHandler):
 		try:
 			linkcheck= self.request.get_all('checks')
 			for key in linkcheck:
-
 				cat=Category.get(key)
 				if cat:
 					cat.delete()
+					ObjCache.invalidate(url=CacheDependUrlGen.gen_category(cat.slug))
+					ObjCache.invalidate(url=CacheDependUrlGen.gen_homepage())
 		finally:
 			self.redirect('/admin/categories')
 
