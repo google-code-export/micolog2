@@ -7,6 +7,8 @@ import logging
 import pickle
 from google.appengine.ext import db
 from google.appengine.api import memcache
+from datetime import datetime
+from base import format_date
 
 class ObjCache(db.Model):
 	cache_key = db.StringProperty(multiline=False)
@@ -123,6 +125,78 @@ def object_cache(key_prefix='',
 			result = method(*args, **kwargs)
 			ObjCache.create(key,result,**cache_args)
 			return result
+
+		return _wrapper
+	return _decorate
+
+def request_cache(key_prefix='',
+                 depend_post_id_parameter_name='cache_depend_post_id',
+                 depend_post_comments_id_parameter_name='cache_depend_post_comments_id',
+                 depend_url_parameter_name='cache_depend_url',
+                 depend_blog_roll_parameter_name='cache_depend_blog_roll',
+                 cache_control_parameter_name='cache_control'):
+	'''
+	available options for cache control are: no_cache, cache
+	default option is cache
+	'''
+	def _decorate(method):
+		def _wrapper(*args, **kwargs):
+			request=args[0].request
+			response=args[0].response
+
+			cache_args = {}
+			pd = {
+				depend_post_id_parameter_name:'depend_post_id',
+			    depend_post_comments_id_parameter_name:'depend_post_comments',
+			    depend_url_parameter_name:'depend_url',
+			    depend_blog_roll_parameter_name:'depend_blog_roll',
+			}
+			for parameter_name in pd:
+				if parameter_name in kwargs:
+					cache_args[pd[parameter_name]] = kwargs[parameter_name]
+					del kwargs[parameter_name]
+
+			cache_control = 'cache'
+			if cache_control_parameter_name in kwargs:
+				cache_control = kwargs[cache_control_parameter_name]
+				del kwargs[cache_control_parameter_name]
+
+			if cache_control == 'no cache':
+				if 'last-modified' not in response.headers:
+						response.last_modified = format_date(datetime.utcnow())
+				method(*args, **kwargs)
+				return
+
+			key = key_prefix
+			if key == '':
+				key = request.path_qs
+			else:
+				key = key+'_'+request.path_qs
+
+			html= ObjCache.get(key)
+			if html:
+				try:
+					response.last_modified =html[1]
+					_len=len(html)
+					if _len>=3:
+						response.set_status(html[2])
+					if _len>=4:
+						for h_key,value in html[3].items():
+							response.headers[h_key]=value
+					response.out.write(html[0])
+					return
+				except Exception,e:
+					logging.error(e.message)
+
+			if 'last-modified' not in response.headers:
+				response.last_modified = format_date(datetime.utcnow())
+
+			method(*args, **kwargs)
+			result=response.out.getvalue()
+			status_code = response._Response__status[0]
+			html = (result,response.last_modified,status_code,response.headers)
+			ObjCache.create(key,html,**cache_args)
+			return
 
 		return _wrapper
 	return _decorate

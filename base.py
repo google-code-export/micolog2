@@ -22,7 +22,7 @@ settings._target = None
 from google.appengine.api.labs import taskqueue
 import wsgiref.handlers
 from mimetypes import types_map
-from datetime import datetime, timedelta
+from datetime import datetime
 import urllib
 import traceback
 import micolog_template
@@ -84,70 +84,6 @@ def hostonly(method):
 
 def format_date(dt):
 	return dt.strftime('%a, %d %b %Y %H:%M:%S GMT')
-
-from model import ObjCache
-def request_cache(time=3600, check_db=True,key_parameter='cache_postfix'):
-	def _decorate(method):
-		def _wrapper(*args, **kwargs):
-			request=args[0].request
-			response=args[0].response
-			
-			from model import g_blog
-			if (not g_blog.enable_memcache and not check_db) or (key_parameter in kwargs and kwargs[key_parameter] == 'no cache'):
-				if 'last-modified' not in response.headers:
-						response.last_modified = format_date(datetime.utcnow())
-				if key_parameter in kwargs:
-					del kwargs[key_parameter]
-				method(*args, **kwargs)
-				return
-
-			key=request.path_qs
-			if key_parameter in kwargs:
-				key = key+'_'+kwargs[key_parameter]
-				del kwargs[key_parameter]
-			
-			html= memcache.get(key)#no need to check if blog has enabled memcache
-			if not html and check_db:
-				db_cache = ObjCache.all().filter("cache_key =",key).get()
-				if db_cache is not None and db_cache.time_stamp + timedelta(seconds = time) > datetime.now():
-					try:
-						html = pickle.loads(db_cache.value)
-					except :
-						logging.error('Cannot load ' + str(db_cache.value) + ' using pickle.')
-						html = None
-
-			if html:
-				try:
-					 response.last_modified =html[1]
-					 _len=len(html)
-					 if _len>=3:
-						response.set_status(html[2])
-					 if _len>=4:
-						for h_key,value in html[3].items():
-							response.headers[h_key]=value
-					 response.out.write(html[0])
-					 return
-				except :
-					logging.error('error sending cached html: ' + str(html))
-		
-			if 'last-modified' not in response.headers:
-				response.last_modified = format_date(datetime.utcnow())
-
-			method(*args, **kwargs)
-			result=response.out.getvalue()
-			status_code = response._Response__status[0]
-			html = (result,response.last_modified,status_code,response.headers)
-			if g_blog.enable_memcache:
-				memcache.set(key,html,time)
-			if check_db:
-				try:
-					ObjCache(cache_key=key,value=pickle.dumps(html)).put()
-				except :
-					logging.error('Cannot dump ' + str(html) +' using pickle.')
-
-		return _wrapper
-	return _decorate
-
 #-------------------------------------------------------------------------------
 class PingbackError(Exception):
 	"""Raised if the remote server caused an exception while pingbacking.
