@@ -57,7 +57,7 @@ class waphandler(BaseRequestHandler):
 	def get(self,page=1):
 		self.doget(page)
 
-	@request_cache()
+	#TODO: update this @request_cache()
 	def doget(self,page):
 		try:
 			from model import g_blog
@@ -100,7 +100,7 @@ class waphandler(BaseRequestHandler):
 							})
 
 class pagehandler(BaseRequestHandler):
-	@request_cache()
+	#TODO: update this @request_cache()
 	def get(self,*arg1):
 		try: id=int(self.param("id") or self.param("p") )
 		except: return self.redirect('/wap')

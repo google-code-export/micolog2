@@ -21,6 +21,7 @@ from google.appengine.ext import db
 from datetime import datetime ,timedelta
 import base64,random
 from django.utils import simplejson
+from cache import request_cache, object_cache, CacheDependUrlGen
 import filter  as myfilter
 from django.template.loader import *
 ##settings.configure(LANGUAGE_CODE = 'zh-cn')
@@ -134,8 +135,11 @@ class MainPage(BasePublicPage):
 			except:
 				return self.error(404)
 
-	@request_cache(time=3600*24, check_db=True)
 	def doget(self,page):
+		return self._doget(page,cache_depend_url=CacheDependUrlGen.gen_homepage())
+
+	@request_cache(key_prefix='HomePage')
+	def _doget(self,page):
 		page=int(page)
 		entrycount=g_blog.postscount()
 		max_page = entrycount / g_blog.posts_per_page + ( entrycount % g_blog.posts_per_page and 1 or 0 )
@@ -177,8 +181,11 @@ def _get_entries_by_category(categories_keys, offset, fetch_n=20):
 	return __get_entries_by_category(categories_keys,offset,fetch_n,cache_postfix=str(categories_keys)+'_'+str(offset)+'_'+str(fetch_n))
 
 class entriesByCategory(BasePublicPage):
-	@request_cache(time=3600*24,check_db=True)
 	def get(self,slug):
+		return self._get(slug,cache_depend_url=CacheDependUrlGen.gen_category(slug))
+
+	@request_cache(key_prefix='category')
+	def _get(self,slug):
 		if not slug:
 			self.error(404)
 			return
@@ -202,8 +209,11 @@ class entriesByCategory(BasePublicPage):
 			self.error(414,slug)
 
 class archive_by_month(BasePublicPage):
-	@request_cache(time=3600*24,check_db=True)
 	def get(self,year,month):
+		return self._get(year,month,cache_depend_url=CacheDependUrlGen.gen_archive(year,month))
+
+	@request_cache(key_prefix='archive')
+	def _get(self,year,month):
 		try:
 			page_index=int (self.param('page'))
 		except:
@@ -219,8 +229,11 @@ class archive_by_month(BasePublicPage):
 		self.render('month',{'entries':entries,'year':year,'month':month,'pager':links})
 
 class entriesByTag(BasePublicPage):
-	@request_cache(time=3600*24,check_db=True)
 	def get(self,slug):
+		return self._get(slug, cache_depend_url=CacheDependUrlGen.gen_tag(slug))
+
+	@request_cache(key_prefix='tag')
+	def _get(self,slug):
 		if not slug:
 				 self.error(404)
 				 return
@@ -241,8 +254,18 @@ class SinglePost(BasePublicPage):
 		if g_blog.allow_pingback :
 			self.response.headers['X-Pingback']="%s/rpc"%str(g_blog.baseurl)
 
-	@request_cache(time=3600*24,check_db=True)
 	def get(self,slug=None,postid=None):
+		if postid is None:
+			slug=urldecode(slug)
+			entry = Entry.all().filter("published =", True).filter('link =', slug).get()
+			if not entry or len(entry) == 0:
+				return self.error(404)
+			else:
+				postid = entry.post_id
+		return self._get(postid,cache_depend_post_id=postid)
+
+	@request_cache(key_prefix='single_post')
+	def _get(self,postid=None):
 		if postid:
 			entries = Entry.all().filter("published =", True).filter('post_id =', postid).fetch(1)
 		else:
@@ -431,8 +454,11 @@ class SinglePost(BasePublicPage):
 			return "/"+url+"?mp="+str(pindex)+"#comments"
 
 class FeedHandler(BaseRequestHandler):
-	@request_cache(time=3600*2,check_db=True)
 	def get(self,tags=None):
+		return self._get(tags,cache_depend_url=CacheDependUrlGen.gen_homepage())
+
+	@request_cache(key_prefix='feed')
+	def _get(self,tags=None):
 		entries = Entry.all().filter('entrytype =','post').filter('published =',True).order('-date').fetch(10)
 		if entries and entries[0]:
 			last_updated = entries[0].date
@@ -443,7 +469,7 @@ class FeedHandler(BaseRequestHandler):
 		self.render2('views/rss.xml',{'entries':entries,'last_updated':last_updated})
 
 class CommentsFeedHandler(BaseRequestHandler):
-	@request_cache(time=3600*2, check_db=True)
+	#TODO: see if this url is frequently used. If so, consider cache it using url dependence
 	def get(self,tags=None):
 		comments = Comment.all().order('-date').filter('ctype =',0).fetch(10)
 		if comments and comments[0]:
@@ -455,8 +481,12 @@ class CommentsFeedHandler(BaseRequestHandler):
 		self.render2('views/comments.xml',{'comments':comments,'last_updated':last_updated})
 
 class SitemapHandler(BaseRequestHandler):
-	@request_cache(time=3600*24)
+
 	def get(self,tags=None):
+		return self._get(tags,cache_depend_url=CacheDependUrlGen.gen_homepage())
+
+	@request_cache(key_prefix='sitemap')
+	def _get(self,tags=None):
 		urls = []
 		def addurl(loc,lastmod=None,changefreq=None,priority=None):
 			url_info = {
@@ -491,7 +521,7 @@ class SitemapHandler(BaseRequestHandler):
 		self.render2('views/sitemap.xml',{'urlset':urls})
 
 class Error404(BaseRequestHandler):
-	@request_cache(time=3600*24, check_db=True)
+	@request_cache(key_prefix='error404')#no depend on, so it will be cached for ever
 	def get(self,slug=None):
 		self.error(404)
 
@@ -658,7 +688,6 @@ class do_action(BaseRequestHandler):
 
 	#no usage found
 	#@hostonly
-	@request_cache()
 	def action_proxy(self):
 		result=urlfetch.fetch(self.param("url"), headers=self.request.headers)
 		if result.status_code == 200:

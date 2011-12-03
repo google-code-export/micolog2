@@ -81,6 +81,23 @@ class ObjCache(db.Model):
 		for cache in ObjCache.all():
 			cache.delete()
 
+class CacheDependUrlGen(object):
+	@staticmethod
+	def gen_tag(slug):
+		return '/tag/'+slug
+
+	@staticmethod
+	def gen_category(slug):
+		return '/category/'+slug
+
+	@staticmethod
+	def gen_homepage():
+		return '/'
+
+	@staticmethod
+	def gen_archive(year, month):
+		return '/'+str(year)+'/'+str(month)
+
 def object_cache(key_prefix='',
                  key_parameter_name='cache_key',
                  depend_post_id_parameter_name='cache_depend_post_id',
