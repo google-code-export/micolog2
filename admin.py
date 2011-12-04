@@ -83,7 +83,6 @@ def fetch_result(target_uri):
 		logging.info('Times Over')
 		raise PingbackError(16)
 
-
 class admin_do_action(BaseRequestHandler):
 	@requires_admin
 	def get(self,slug=None):
@@ -246,9 +245,6 @@ class admin_do_action(BaseRequestHandler):
 		except:
 			raise PingbackError(32)
 
-
-
-
 class admin_tools(BaseRequestHandler):
 	def __init__(self):
 		self.current="config"
@@ -256,7 +252,6 @@ class admin_tools(BaseRequestHandler):
 	@requires_admin
 	def get(self,slug=None):
 		self.render2('views/admin/tools.html')
-
 
 class admin_sitemap(BaseRequestHandler):
 	def __init__(self):
@@ -391,7 +386,7 @@ class admin_setup(BaseRequestHandler):
 		g_blog.save()
 		gblog_init()
 		vals={'themes':ThemeIterator()}
-		memcache.flush_all()
+		ObjCache.flush_all()
 		self.render2('views/admin/setup.html',vals)
 
 class admin_entry(BaseRequestHandler):
@@ -422,6 +417,7 @@ class admin_entry(BaseRequestHandler):
 
 	@requires_admin
 	def post(self,slug='post'):
+		ObjCache.flush_all()#TODO improve this
 		action=self.param("action")
 		title=self.param("post_title")
 		content=self.param('content')
@@ -588,9 +584,8 @@ class admin_entries(BaseRequestHandler):
 				entry.delete()
 				g_blog.entrycount-=1
 		finally:
-
+			ObjCache.flush_all() #TODO: improve
 			self.redirect('/admin/entries/'+slug)
-
 
 class admin_categories(BaseRequestHandler):
 	@requires_admin
@@ -773,7 +768,7 @@ class admin_category(BaseRequestHandler):
 		slug=self.param("slug")
 		parentkey=self.param('parentkey')
 		key=self.param('key')
-
+		ObjCache.flush_all()#TODO improve this
 
 		vals={'action':action,'postback':True}
 
@@ -848,7 +843,6 @@ class admin_authors(BaseRequestHandler):
 		try:
 			linkcheck= self.request.get_all('checks')
 			for key in linkcheck:
-
 				author=User.get(key)
 				author.delete()
 		finally:

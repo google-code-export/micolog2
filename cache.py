@@ -137,7 +137,7 @@ def object_cache(key_prefix='',
 				cache_control = kwargs[cache_control_parameter_name]
 				del kwargs[cache_control_parameter_name]
 
-			if cache_control == 'no cache':
+			if cache_control == 'no_cache':
 				logging.debug('object_cache: no_cache for '+key)
 				return method(*args, **kwargs)
 
@@ -173,7 +173,7 @@ def object_memcache(key_prefix='',time=3600,
 				cache_control = kwargs[cache_control_parameter_name]
 				del kwargs[cache_control_parameter_name]
 
-			if cache_control == 'no cache':
+			if cache_control == 'no_cache':
 				logging.debug('object_memcache: no_cache for '+key)
 				return method(*args, **kwargs)
 
@@ -234,7 +234,7 @@ def request_cache(key_prefix='',
 			else:
 				key = key+'_'+request.path_qs
 
-			if cache_control == 'no cache':
+			if cache_control == 'no_cache':
 				logging.debug('request_cache: no_cache for '+key)
 				if 'last-modified' not in response.headers:
 						response.last_modified = format_date(datetime.utcnow())

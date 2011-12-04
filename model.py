@@ -368,6 +368,14 @@ class Link(db.Model):
 
 	def put(self):
 		db.Model.put(self)
+		ObjCache.invalidate_multiple(blog_roll=True)
+		#work around
+		homepage_cache = ObjCache.all().filter('cache_key =','HomePage_/').get()
+		if homepage_cache is not None:
+			homepage_cache.invalidate()
+		basic_info_cache = ObjCache.all().filter('cache_key =','get_basic_info').get()
+		if basic_info_cache is not None:
+			basic_info_cache.invalidate()
 		g_blog.tigger_action("save_link",self)
 
 
