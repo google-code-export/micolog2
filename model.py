@@ -40,7 +40,6 @@ class Theme:
 		if self.mapping_cache.has_key(name):
 			return self.mapping_cache[name]
 		else:
-
 			path ="/".join((self.name,'templates', name + '.html'))
 			logging.debug('path:%s'%path)
 			self.mapping_cache[name]=path
@@ -112,7 +111,7 @@ class LangIterator:
 class BaseModel(db.Model):
 	def __init__(self, parent=None, key_name=None, _app=None, **kwds):
 		self.__isdirty = False
-		DBModel.__init__(self, parent=None, key_name=None, _app=None, **kwds)
+		DBModel.__init__(self, parent=None, key_name=None, _app=None, **kwds)#why this?
 
 	def __setattr__(self,attrname,value):
 		"""

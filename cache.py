@@ -2,7 +2,7 @@
 ###################################################
 #this file is under GPL v3 license
 #Author: Rex  fdrex1987@gmail.com
-#some of the code are come from Micolog's code
+#the code of format_date is from Micolog's code
 ##################################################
 import logging
 import pickle
@@ -10,82 +10,17 @@ from google.appengine.ext import db
 from google.appengine.api import memcache
 from datetime import datetime
 
+class CacheType(object):
+	Page = 1
+	Pager = 2
+	Comment = 3
+	Tag = 4
+	Link = 5
+	Category = 6
+	RelativePosts = 7
+	URL = 8
 
-class ObjCache(db.Model):
-	cache_key = db.StringProperty(multiline=False)
-	value = db.BlobProperty()
-	#the following fields are used at cache auto invalidation
-	#divide the cases into the following basic categories:
-	depend_post_id = db.IntegerProperty(default=-1) #which page's is this cache depends on
-	depend_post_comments = db.IntegerProperty(default=-1) #which page's comments is this cache depends on (still use page id)
-	depend_url = db.StringProperty(default='') #which url is this cache depends on
-	depend_blog_roll = db.BooleanProperty(default=False) #is this cache depends on the blog roll
-
-	def invalidate(self):
-		logging.debug('ObjCache invalidate called: ' + self.cache_key)
-		memcache.delete(self.cache_key)
-		self.delete()
-
-	def update(self, new_value_obj):
-		logging.debug('ObjCache update called: ' + self.cache_key)
-		memcache.set(self.cache_key,new_value_obj)
-		self.value = pickle.dumps(new_value_obj)
-		self.put()
-
-	@classmethod
-	def invalidate_multiple(cls, post_id=None,post_comments_id=None, url=None,blog_roll=None):
-		query = ObjCache.all()
-		if post_id is not None:
-			query = query.filter('depend_post_id =',post_id)
-		if post_comments_id is not None:
-			query = query.filter('depend_post_comments =',post_comments_id)
-		if url is not None:
-			query = query.filter('depend_url =',url)
-		if blog_roll is not None:
-			query = query.filter('depend_blog_roll =',blog_roll)
-		for obj in query:
-			obj.invalidate()
-
-	@classmethod
-	def get(cls,key_name):
-		result = memcache.get(key_name)
-		if result is not None:
-			return result
-		try:
-			result = ObjCache.all().filter('cache_key =',key_name).get()
-			if result is not None:
-				return pickle.loads(result.value)
-			else:
-				return None
-		except Exception, e:
-			logging.error(e.message)
-
-	@classmethod
-	def create(cls, key, value_obj, depend_post_id=-1,depend_post_comments=-1, depend_url='',depend_blog_roll=False):
-		try:
-			memcache.set(key,value_obj)
-			ObjCache(cache_key=key,
-					 value=pickle.dumps(value_obj),
-					 depend_post_id=depend_post_id,
-			         depend_post_comments = depend_post_comments,
-					 depend_url=depend_url,
-					 depend_blog_roll = depend_blog_roll
-					 ).put()
-			logging.debug("ObjCache created: " + key)
-		except Exception,e:
-			logging.error(e.message)
-
-	@classmethod
-	def flush_all(cls):
-		'''
-		This is faster than invalidate with default parameter values since memcache only need one call
-		'''
-		logging.debug('ObjCache flush all called')
-		memcache.flush_all()
-		for cache in ObjCache.all():
-			cache.delete()
-
-class CacheDependUrlGen(object):
+class CacheUrlFormatter(object):
 	@staticmethod
 	def gen_tag(slug):
 		return '/tag/'+slug
@@ -102,13 +37,70 @@ class CacheDependUrlGen(object):
 	def gen_archive(year, month):
 		return '/'+str(year)+'/'+str(month)
 
+class ObjCache(db.Model):
+	cache_key = db.StringProperty()
+	value = db.BlobProperty()
+	#the following fields are used at cache auto invalidation
+	#下面是缓存类型
+	cache_type = db.IntegerProperty(default=0)
+	#一些可叠加的筛选条件
+	is_count = db.BooleanProperty(default=False)
+	is_aggregation = db.BooleanProperty(default=False)
+	#下面是更细节的资料
+	entry_id = db.IntegerProperty(default=-1)
+	pager_id = db.IntegerProperty(default=-1)
+	url = db.StringProperty(default='')
+
+	def invalidate(self):
+		logging.debug('ObjCache invalidate called: ' + self.cache_key)
+		memcache.delete(self.cache_key)
+		self.delete()
+
+	def update(self, new_value_obj):
+		logging.debug('ObjCache update called: ' + self.cache_key)
+		memcache.set(self.cache_key,new_value_obj)
+		self.value = pickle.dumps(new_value_obj)
+		self.put()
+
+	@staticmethod
+	def get_cache_value(key_name):
+		result = memcache.get(key_name)
+		if result is not None:
+			return result
+		try:
+			result = ObjCache.all().filter('cache_key =',key_name).get()
+			if result is not None:
+				return pickle.loads(result.value)
+			else:
+				return None
+		except Exception, e:
+			logging.error(e.message)
+			return None
+
+	@staticmethod
+	def create(key, value_obj, **kwargs):
+		try:
+			memcache.set(key,value_obj)
+			ObjCache(cache_key=key,value=pickle.dumps(value_obj), **kwargs).put()
+			logging.debug("ObjCache created: " + key)
+		except Exception,e:
+			logging.error(e.message)
+
+	@classmethod
+	def flush_all(cls):
+		'''
+		This is faster than invalidate with default parameter values since memcache only need one call
+		'''
+		logging.debug('ObjCache flush all called')
+		memcache.flush_all()
+		for cache in ObjCache.all():
+			cache.delete()
+
 def object_cache(key_prefix='',
                  key_parameter_name='cache_key',
-                 depend_post_id_parameter_name='cache_depend_post_id',
-                 depend_post_comments_id_parameter_name='cache_depend_post_comments_id',
-                 depend_url_parameter_name='cache_depend_url',
-                 depend_blog_roll_parameter_name='cache_depend_blog_roll',
-                 cache_control_parameter_name='cache_control'):
+                 cache_parameter_prefix='cache_',
+                 cache_control_parameter_name='cache_control',
+                 **other_kwargs):
 	'''
 	available options for cache control are: no_cache, cache
 	default option is cache
@@ -120,16 +112,11 @@ def object_cache(key_prefix='',
 				key = key+'_'+kwargs[key_parameter_name]
 				del kwargs[key_parameter_name]
 
-			cache_args = {}
-			pd = {
-				depend_post_id_parameter_name:'depend_post_id',
-			    depend_post_comments_id_parameter_name:'depend_post_comments',
-			    depend_url_parameter_name:'depend_url',
-			    depend_blog_roll_parameter_name:'depend_blog_roll',
-			}
-			for parameter_name in pd:
-				if parameter_name in kwargs:
-					cache_args[pd[parameter_name]] = kwargs[parameter_name]
+			cache_args = other_kwargs
+			for parameter_name in kwargs:
+				if parameter_name.startswith(cache_parameter_prefix):
+					cache_arg_name = parameter_name[len(cache_parameter_prefix):]
+					cache_args[cache_arg_name] = kwargs[parameter_name]
 					del kwargs[parameter_name]
 					
 			cache_control = 'cache'
@@ -141,7 +128,7 @@ def object_cache(key_prefix='',
 				logging.debug('object_cache: no_cache for '+key)
 				return method(*args, **kwargs)
 
-			result = ObjCache.get(key)
+			result = ObjCache.get_cache_value(key)
 			if result is not None:
 				logging.debug('object_cache: result found for '+key)
 				return result
@@ -189,7 +176,7 @@ def object_memcache(key_prefix='',time=3600,
 		return _wrapper
 	return _decorate
 
-@object_cache(key_prefix='get_query_count')
+@object_cache(key_prefix='get_query_count',is_count=True)
 def get_query_count(query):
 	return query.count()
 
@@ -197,11 +184,10 @@ def format_date(dt):
 	return dt.strftime('%a, %d %b %Y %H:%M:%S GMT')
 
 def request_cache(key_prefix='',
-                 depend_post_id_parameter_name='cache_depend_post_id',
-                 depend_post_comments_id_parameter_name='cache_depend_post_comments_id',
-                 depend_url_parameter_name='cache_depend_url',
-                 depend_blog_roll_parameter_name='cache_depend_blog_roll',
-                 cache_control_parameter_name='cache_control'):
+                  key_parameter_name='cache_key',
+                  cache_parameter_prefix='cache_',
+                  cache_control_parameter_name='cache_control',
+                  **other_kwargs):
 	'''
 	available options for cache control are: no_cache, cache
 	default option is cache
@@ -211,28 +197,23 @@ def request_cache(key_prefix='',
 			request=args[0].request
 			response=args[0].response
 
-			cache_args = {}
-			pd = {
-				depend_post_id_parameter_name:'depend_post_id',
-			    depend_post_comments_id_parameter_name:'depend_post_comments',
-			    depend_url_parameter_name:'depend_url',
-			    depend_blog_roll_parameter_name:'depend_blog_roll',
-			}
-			for parameter_name in pd:
-				if parameter_name in kwargs:
-					cache_args[pd[parameter_name]] = kwargs[parameter_name]
+			key = key_prefix
+			if key_parameter_name in kwargs:
+				key = key+'_'+kwargs[key_parameter_name]
+				del kwargs[key_parameter_name]
+			key = key+'-'+request.path_qs
+
+			cache_args = other_kwargs
+			for parameter_name in kwargs:
+				if parameter_name.startswith(cache_parameter_prefix):
+					cache_arg_name = parameter_name[len(cache_parameter_prefix):]
+					cache_args[cache_arg_name] = kwargs[parameter_name]
 					del kwargs[parameter_name]
 
 			cache_control = 'cache'
 			if cache_control_parameter_name in kwargs:
 				cache_control = kwargs[cache_control_parameter_name]
 				del kwargs[cache_control_parameter_name]
-
-			key = key_prefix
-			if key == '':
-				key = request.path_qs
-			else:
-				key = key+'_'+request.path_qs
 
 			if cache_control == 'no_cache':
 				logging.debug('request_cache: no_cache for '+key)
@@ -241,7 +222,7 @@ def request_cache(key_prefix='',
 				method(*args, **kwargs)
 				return
 
-			html= ObjCache.get(key)
+			html= ObjCache.get_cache_value(key)
 			if html:
 				logging.debug('request_cache: found cache for '+key)
 				try:
@@ -258,7 +239,6 @@ def request_cache(key_prefix='',
 					logging.error(e.message)
 
 			logging.debug('request_cache: not found cache for '+key)
-
 			if 'last-modified' not in response.headers:
 				response.last_modified = format_date(datetime.utcnow())
 
