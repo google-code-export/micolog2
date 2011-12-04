@@ -504,7 +504,7 @@ class Entry(BaseModel):
 
 	def get_comments_by_page(self,index,psize):
 		return self._get_comments_by_page(index,psize,
-		                                  cache_key=str(index)+'_'+str(psize),
+		                                  cache_key=str(self.post_id)+'_'+str(index)+'_'+str(psize),
 		                                  cache_depend_post_comments_id=self.post_id)
 
 	@property
@@ -524,7 +524,7 @@ class Entry(BaseModel):
 	def purecomments_count(self):
 		return get_query_count(
 			query = self.purecomments(),
-			cache_key = 'purecomments_count'+str(self.post_id),
+			cache_key = 'purecomments_count_'+str(self.post_id),
 			cache_depend_post_comments_id = self.post_id)
 
 
