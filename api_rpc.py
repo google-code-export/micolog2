@@ -670,7 +670,6 @@ def mt_getPostCategories(postid):
 	categories=post.categories
 	cates=[]
 	for cate in categories:
-		#cate=Category(cache_key)
 		cates.append({'categoryId' : str(cate.ID()),
 					'categoryName':cate.name,
 					'isPrimary':True
@@ -936,9 +935,6 @@ dispatcher = PlogXMLRPCDispatcher({
 	##pingback
 	'pingback.ping':pingback_ping,
 	'pingback.extensions.getPingbacks':pingback_extensions_getPingbacks,
-
-
-
 	})
 
 

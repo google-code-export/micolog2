@@ -10,16 +10,6 @@ from google.appengine.ext import db
 from google.appengine.api import memcache
 from datetime import datetime
 
-class CacheType(object):
-	Page = 1
-	Pager = 2
-	Comment = 3
-	Tag = 4
-	Link = 5
-	Category = 6
-	RelativePosts = 7
-	URL = 8
-
 class CacheUrlFormatter(object):
 	@staticmethod
 	def gen_tag(slug):
@@ -41,13 +31,25 @@ class ObjCache(db.Model):
 	cache_key = db.StringProperty()
 	value = db.BlobProperty()
 	#the following fields are used at cache auto invalidation
-	#下面是缓存类型
-	cache_type = db.IntegerProperty(default=0)
 	#一些可叠加的筛选条件
+	is_comment = db.BooleanProperty(default=False)
+	is_link = db.BooleanProperty(default=False)
+	is_relativePosts = db.BooleanProperty(default=False)
+	is_basicinfo = db.BooleanProperty(default=False)
+	is_htmlpage = db.BooleanProperty(default=False) #即request所缓存的那种
+	is_page = db.BooleanProperty(default=False) #和post相对应那种
+	is_post = db.BooleanProperty(default=False)
+	is_sticky = db.BooleanProperty(default=False)
+	is_tag = db.BooleanProperty(default=False)
+	is_category = db.BooleanProperty(default=False)
 	is_count = db.BooleanProperty(default=False)
 	is_aggregation = db.BooleanProperty(default=False)
+	is_pager = db.BooleanProperty(default=False)
+	is_archive = db.BooleanProperty(default=False)
+	is_purecomment = db.BooleanProperty(default=True)
 	#下面是更细节的资料
-	entry_id = db.IntegerProperty(default=-1)
+	category = db.StringProperty(default='')
+	entry_id = db.IntegerProperty(default=-1)#post_id
 	pager_id = db.IntegerProperty(default=-1)
 	url = db.StringProperty(default='')
 
@@ -61,6 +63,29 @@ class ObjCache(db.Model):
 		memcache.set(self.cache_key,new_value_obj)
 		self.value = pickle.dumps(new_value_obj)
 		self.put()
+
+	def update_basic_info(update_categories=False, update_tags=False, update_links=False, update_comments=False,
+						 update_archives=False, update_pages=False):
+		from model import Entry,Archive,Comment,Category,Tag,Link
+		basic_info = ObjCache.all().filter('type =',CacheType.BasicInfo).get()
+		if basic_info is not None:
+			info = ObjCache.get_cache_value(basic_info.cache_key)
+			if update_pages:
+				info['menu_pages'] = Entry.all().filter('entrytype =','page')\
+							.filter('published =',True)\
+							.filter('entry_parent =',0)\
+							.order('menu_order').fetch(limit=1000)
+			if update_archives:
+				info['archives'] = Archive.all().order('-year').order('-month').fetch(12)
+			if update_comments:
+				info['recent_comments'] = Comment.all().order('-date').fetch(5)
+			if update_categories:
+				info['categories'] = Category.all().fetch(limit=1000)
+			if update_tags:
+				info['alltags'] = Tag.all().order('-tagcount').fetch(limit=100)
+			if update_links:
+				info['blogroll'] = Link.all().filter('linktype =','blogroll').fetch(limit=1000)
+			basic_info.update(info)
 
 	@staticmethod
 	def get_cache_value(key_name):
@@ -85,6 +110,31 @@ class ObjCache(db.Model):
 			logging.debug("ObjCache created: " + key)
 		except Exception,e:
 			logging.error(e.message)
+
+	@classmethod
+	def flush_multi(cls, type=None, is_count=None, is_aggregation=None,is_pager=None,
+	                is_archive=None, is_purecomment=None, entry_id=None,pager_id=None,url=None):
+		flush = ObjCache.all()
+		if is_purecomment is not None:
+			flush = flush.filter('is_purecomment =',is_purecomment)
+		if is_archive is not None:
+			flush = flush.filter('is_archive =',is_archive)
+		if type is not None:
+			flush = flush.filter('type =', type)
+		if is_count is not None:
+			flush = flush.filter('is_count =', is_count)
+		if is_aggregation is not None:
+			flush = flush.filter('is_aggregation =', is_aggregation)
+		if is_pager is not None:
+			flush = flush.filter('is_pager =',is_pager)
+		if entry_id is not None:
+			flush = flush.filter('entry_id =', entry_id)
+		if pager_id is not None:
+			flush = flush.filter('pager_id =',pager_id)
+		if url is not None:
+			flush = flush.filter('url =',url)
+		for obj in flush:
+			obj.invalidate()
 
 	@classmethod
 	def flush_all(cls):
@@ -178,7 +228,10 @@ def object_memcache(key_prefix='',time=3600,
 
 @object_cache(key_prefix='get_query_count',is_count=True)
 def get_query_count(query):
-	return query.count()
+	if hasattr(query,'__len__'):
+		return len(query)
+	else:
+		return query.count()
 
 def format_date(dt):
 	return dt.strftime('%a, %d %b %Y %H:%M:%S GMT')

@@ -47,7 +47,7 @@ def doRequestPostHandle(old_handler,new_handler,**args):
 		new_handler.initialize(old_handler.request,old_handler.response)
 		return  new_handler.post(**args)
 
-@object_cache(key_prefix='get_basic_info')
+@object_cache(key_prefix='get_basic_info',type=CacheType.BasicInfo)
 def _get_basic_info():
 	return {
 		'menu_pages':
@@ -62,7 +62,7 @@ def _get_basic_info():
 		'archives':
 			Archive.all().order('-year').order('-month').fetch(12),
 		'alltags':
-			Tag.all().order('-tagcount').fetch(limit=50),
+			Tag.all().order('-tagcount').fetch(limit=100),
 		'recent_comments':
 	        Comment.all().order('-date').fetch(5)
 	}
@@ -92,15 +92,14 @@ class BasePublicPage(BaseRequestHandler):
 				ret+='<li class="%s"><a href="/%s" target="%s">%s</a></li>'%( current,page.link, page.target,page.title)
 		return ret
 
+	#假装是主页，在主页释放时自己也释放(有post更新时主页一般都会更新)
+	@object_cache(key_prefix='sticky_entries',type=CacheType.Page, url=CacheUrlFormatter.gen_homepage())
 	def sticky_entrys(self):
-		return self._sticky_entrys(cache_depend_url=CacheDependUrlGen.gen_homepage())
-
-	@object_cache(key_prefix='sticky_entries')
-	def _sticky_entrys(self):
 		return Entry.all().filter('entrytype =','post')\
 			.filter('published =',True)\
 			.filter('sticky =',True)\
 			.order('-date').fetch(limit=1000)
+
 
 class MainPage(BasePublicPage):
 	def get(self,page=1):
@@ -122,11 +121,8 @@ class MainPage(BasePublicPage):
 			except:
 				return self.error(404)
 
+	@request_cache(key_prefix='HomePage', type=CacheType.Page, url=CacheUrlFormatter.gen_homepage())
 	def doget(self,page):
-		return self._doget(page,cache_depend_url=CacheDependUrlGen.gen_homepage())
-
-	@request_cache(key_prefix='HomePage')
-	def _doget(self,page):
 		page=int(page)
 		entrycount=g_blog.postscount()
 		max_page = entrycount / g_blog.posts_per_page + ( entrycount % g_blog.posts_per_page and 1 or 0 )
@@ -155,7 +151,10 @@ class MainPage(BasePublicPage):
 
 def _get_category_post_count(category_key):
 	query = Entry.all().filter("published =", True).filter('categorie_keys =',category_key)
-	return get_query_count(query, cache_key='category_post_count_'+str(category_key),cache_depend_url=CacheDependUrlGen.gen_homepage() )
+	return get_query_count(query,
+	                       cache_key='category_post_count_'+str(category_key),
+	                       cache_type = CacheType.Category
+	                       )
 
 #the whole page is cached, so no need to cache this function
 def _get_entries_by_category(categories_keys, offset, fetch_n):

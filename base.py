@@ -151,7 +151,6 @@ class util:
 			params={'source': source_uri,'target':target_uri})
 
 class Pager(object):
-
 	def __init__(self, query_len, model=None,query=None, items_per_page=10):
 		if model:
 			self.query = model.all()
@@ -161,7 +160,7 @@ class Pager(object):
 		self.items_per_page = items_per_page
 		self.query_len = query_len
 
-	@object_cache(key_prefix='pager.fetch')
+	@object_cache(key_prefix='pager',type=CacheType.Pager)
 	def fetch(self, p):
 		max_offset = self.query_len
 		n = max_offset / self.items_per_page
