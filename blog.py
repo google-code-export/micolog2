@@ -92,8 +92,8 @@ class BasePublicPage(BaseRequestHandler):
 				ret+='<li class="%s"><a href="/%s" target="%s">%s</a></li>'%( current,page.link, page.target,page.title)
 		return ret
 
-	#假装是主页，在主页释放时自己也释放(有post更新时主页一般都会更新)
-	@object_cache(key_prefix='sticky_entries',type=CacheType.Page, url=CacheUrlFormatter.gen_homepage())
+	#设定htmlpage为True，因为忘记其他地方在刷新页面的时候是不是只看这一个条件了=_=
+	@object_cache(key_prefix='sticky_entries',entry_type='POST', is_sticky=True, is_htmlpage=True)
 	def sticky_entrys(self):
 		return Entry.all().filter('entrytype =','post')\
 			.filter('published =',True)\
@@ -121,7 +121,7 @@ class MainPage(BasePublicPage):
 			except:
 				return self.error(404)
 
-	@request_cache(key_prefix='HomePage', type=CacheType.Page, url=CacheUrlFormatter.gen_homepage())
+	@request_cache(key_prefix='HomePage', url=CacheUrlFormatter.gen_homepage())
 	def doget(self,page):
 		page=int(page)
 		entrycount=g_blog.postscount()
@@ -153,7 +153,8 @@ def _get_category_post_count(category_key):
 	query = Entry.all().filter("published =", True).filter('categorie_keys =',category_key)
 	return get_query_count(query,
 	                       cache_key='category_post_count_'+str(category_key),
-	                       cache_type = CacheType.Category
+	                       cache_is_category = True,
+	                       cache_entry_type = 'POST'
 	                       )
 
 #the whole page is cached, so no need to cache this function
@@ -162,35 +163,44 @@ def _get_entries_by_category(categories_keys, offset, fetch_n):
 
 class entriesByCategory(BasePublicPage):
 	def get(self,slug):
-		return self._get(slug,cache_depend_url=CacheDependUrlGen.gen_category(slug))
-
-	@request_cache(key_prefix='category')
-	def _get(self,slug):
 		if not slug:
 			self.error(404)
 			return
+		slug=urldecode(slug)
+		cats=Category.all().filter('slug =',slug).fetch(1)
+		if cats:
+			return self._get(cats,
+		                    cache_url=CacheUrlFormatter.gen_tag(slug),
+		                    cache_entry_type = 'POST',
+		                    cache_is_category=True,
+			                cache_category = cats[0].name
+		                    )
+		else:
+			self.error(414,slug)
+
+	@request_cache(key_prefix='category')
+	def _get(self,cats):
 		try:
 			page_index=int(self.param('page'))
 		except:
 			page_index=1
-		slug=urldecode(slug)
 
-		cats=Category.all().filter('slug =',slug).fetch(1)
 		cat_key = cats[0].key()
-		if cats:
-			entries=_get_entries_by_category(cat_key,(page_index-1)*20,20)
-			max_offset = _get_category_post_count(cat_key)
-			n = max_offset/20
-			links = {'count':max_offset,'page_index':page_index,'prev': page_index - 1, 'next': page_index + 1, 'last': n}
-			if links['next'] > n:
-				links['next'] = 0
-			self.render('category',{'entries':entries,'category':cats[0],'pager':links})
-		else:
-			self.error(414,slug)
+		entries=_get_entries_by_category(cat_key,(page_index-1)*20,20)
+		max_offset = _get_category_post_count(cat_key)
+		n = max_offset/20
+		links = {'count':max_offset,'page_index':page_index,'prev': page_index - 1, 'next': page_index + 1, 'last': n}
+		if links['next'] > n:
+			links['next'] = 0
+		self.render('category',{'entries':entries,'category':cats[0],'pager':links})
 
 class archive_by_month(BasePublicPage):
 	def get(self,year,month):
-		return self._get(year,month,cache_depend_url=CacheDependUrlGen.gen_archive(year,month))
+		return self._get(year,month,
+		                 cache_url=CacheUrlFormatter.gen_archive(year,month),
+		                 cache_entry_type='POST',
+		                 cache_is_archive=True
+		                 )
 
 	@request_cache(key_prefix='archive')
 	def _get(self,year,month):
@@ -217,7 +227,12 @@ class archive_by_month(BasePublicPage):
 
 class entriesByTag(BasePublicPage):
 	def get(self,slug):
-		return self._get(slug, cache_depend_url=CacheDependUrlGen.gen_tag(slug))
+		return self._get(slug,
+		                 cache_url=CacheUrlFormatter.gen_tag(slug),
+		                 cache_entry_type = 'POST',
+		                 cache_is_tag = True,
+		                 cache_tag = slug
+		)
 
 	@request_cache(key_prefix='tag')
 	def _get(self,slug):
@@ -256,10 +271,14 @@ class SinglePost(BasePublicPage):
 				return self.error(404)
 			else:
 				postid = entry.post_id
-		return self._get(postid,cache_depend_post_id=postid)
+		return self._get(
+			postid,
+			cache_entry_type = 'POST',
+		    cache_entry_id = postid
+		)
 
 	@request_cache(key_prefix='single_post')
-	def _get(self,postid=None):
+	def _get(self,postid):
 		if postid:
 			entries = Entry.all().filter("published =", True).filter('post_id =', postid).fetch(1)
 		else:
@@ -359,7 +378,6 @@ class SinglePost(BasePublicPage):
 			self.response.out.write(error % "Invalid trackback url.")
 			return
 
-
 		coming_url = self.param('url')
 		blog_name = myfilter.do_filter(self.param('blog_name'))
 		excerpt = myfilter.do_filter(self.param('excerpt'))
@@ -401,8 +419,7 @@ class SinglePost(BasePublicPage):
 		comment.ip=self.request.remote_addr
 		comment.ctype=COMMENT_TRACKBACK
 		try:
-			comment.save()
-			#TODO_FUTURE: make sure that the relevant cache and DB has been cleared (low priority since this is pretty hard at this time)
+			comment.save()#已经做好了cache的更新
 			memcache.delete("/"+entry.link)
 			self.write(success)
 			g_blog.tigger_action("pingback_post",comment)
@@ -448,11 +465,9 @@ class SinglePost(BasePublicPage):
 			return "/"+url+"?mp="+str(pindex)+"#comments"
 
 class FeedHandler(BaseRequestHandler):
+	#这里冒充下homepage，以便随着post更新
+	@request_cache(key_prefix='feed',url=CacheUrlFormatter.gen_homepage())
 	def get(self,tags=None):
-		return self._get(tags,cache_depend_url=CacheDependUrlGen.gen_homepage())
-
-	@request_cache(key_prefix='feed')
-	def _get(self,tags=None):
 		entries = Entry.all().filter('entrytype =','post').filter('published =',True).order('-date').fetch(10)
 		if entries and entries[0]:
 			last_updated = entries[0].date
@@ -463,7 +478,7 @@ class FeedHandler(BaseRequestHandler):
 		self.render2('views/rss.xml',{'entries':entries,'last_updated':last_updated})
 
 class CommentsFeedHandler(BaseRequestHandler):
-	#TODO: see if this url is frequently used. If so, consider cache it using url dependence
+	#TODO: see if this url is frequently used. If so, consider cache it
 	def get(self,tags=None):
 		comments = Comment.all().order('-date').filter('ctype =',0).fetch(10)
 		last_updated = ''
@@ -477,12 +492,9 @@ class CommentsFeedHandler(BaseRequestHandler):
 		self.render2('views/comments.xml',{'comments':comments,'last_updated':last_updated})
 
 class SitemapHandler(BaseRequestHandler):
-
+	#同样冒充下首页来得到更新
+	@request_cache(key_prefix='sitemap',url=CacheUrlFormatter.gen_homepage())
 	def get(self,tags=None):
-		return self._get(tags,cache_depend_url=CacheDependUrlGen.gen_homepage())
-
-	@request_cache(key_prefix='sitemap')
-	def _get(self,tags=None):
 		urls = []
 		def addurl(loc,lastmod=None,changefreq=None,priority=None):
 			url_info = {
@@ -517,7 +529,8 @@ class SitemapHandler(BaseRequestHandler):
 		self.render2('views/sitemap.xml',{'urlset':urls})
 
 class Error404(BaseRequestHandler):
-	@request_cache(key_prefix='error404')#no depend on, so it will be cached for ever
+	#no depend on, so it will be cached for ever. but seems nowhere uses it :(
+	@request_cache(key_prefix='error404')
 	def get(self,slug=None):
 		self.error(404)
 
@@ -625,7 +638,7 @@ class Post_comment(BaseRequestHandler):
 
 			comment.no=comment.entry.commentcount+1
 			try:
-				comment.save()
+				comment.save() #take care of cache
 				memcache.delete("/"+comment.entry.link)
 
 				self.response.headers.add_header( 'Set-Cookie', cookiestr)

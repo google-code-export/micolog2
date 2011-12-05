@@ -386,7 +386,7 @@ class admin_setup(BaseRequestHandler):
 		g_blog.save()
 		gblog_init()
 		vals={'themes':ThemeIterator()}
-		ObjCache.flush_all()
+		ObjCache.flush_multi(is_htmlpage=True)
 		self.render2('views/admin/setup.html',vals)
 
 class admin_entry(BaseRequestHandler):
@@ -417,7 +417,6 @@ class admin_entry(BaseRequestHandler):
 
 	@requires_admin
 	def post(self,slug='post'):
-		ObjCache.flush_all()#TODO improve this
 		action=self.param("action")
 		title=self.param("post_title")
 		content=self.param('content')
@@ -580,11 +579,19 @@ class admin_entries(BaseRequestHandler):
 				kid=int(id)
 
 				entry=Entry.get_by_id(kid)
-
+				if entry.entrytype=='PAGE':
+					ObjCache.flush_multi(entry_type='PAGE')
+					ObjCache.flush_multi(is_htmlpage=True)
+				else:
+					ObjCache.flush_multi(entry_type='POST', entry_id=entry.post_id)
+					ObjCache.flush_multi(is_htmlpage=True, url=CacheUrlFormatter.gen_homepage())
+					ObjCache.flush_multi(is_recentposts=True)
+					ObjCache.flush_multi(is_relativePosts=True)
+					ObjCache.flush_multi(is_archive=True)
 				entry.delete()
 				g_blog.entrycount-=1
 		finally:
-			ObjCache.flush_all() #TODO: improve
+			ObjCache.update_basic_info(update_pages=True)
 			self.redirect('/admin/entries/'+slug)
 
 class admin_categories(BaseRequestHandler):
@@ -610,10 +617,12 @@ class admin_categories(BaseRequestHandler):
 	def post(self,slug=None):
 		try:
 			linkcheck= self.request.get_all('checks')
+			ObjCache.flush_multi(is_htmlpage=True)
 			for key in linkcheck:
 				cat=Category.get(key)
 				if cat:
 					cat.delete()
+					ObjCache.flush_multi(category=cat.name)
 		finally:
 			self.redirect('/admin/categories')
 
@@ -624,8 +633,6 @@ class admin_comments(BaseRequestHandler):
 			page_index=int(self.param('page'))
 		except:
 			page_index=1
-
-
 
 		cq=self.param('cq')
 		cv=self.param('cv')
@@ -679,6 +686,8 @@ class admin_links(BaseRequestHandler):
 			kid=int(link_id)
 			link=Link.get_by_id(kid)
 			link.delete()
+		ObjCache.flush_multi(is_link=True)
+		ObjCache.update_basic_info(update_links=True)
 		self.redirect('/admin/links')
 
 class admin_link(BaseRequestHandler):
@@ -730,6 +739,9 @@ class admin_link(BaseRequestHandler):
 				except:
 					vals.update({'result':False,'msg':_('Error:Link can''t been saved.')})
 					self.render2('views/admin/link.html',vals)
+					
+		ObjCache.flush_multi(is_link=True)
+		ObjCache.update_basic_info(update_links=True)
 
 class admin_category(BaseRequestHandler):
 	def __init__(self):
@@ -742,9 +754,7 @@ class admin_category(BaseRequestHandler):
 		category=None
 		if action and  action=='edit':
 				try:
-
 					category=Category.get(key)
-
 				except:
 					pass
 		else:
@@ -768,7 +778,9 @@ class admin_category(BaseRequestHandler):
 		slug=self.param("slug")
 		parentkey=self.param('parentkey')
 		key=self.param('key')
-		ObjCache.flush_all()#TODO improve this
+		
+		ObjCache.flush_multi(is_htmlpage=True)
+		ObjCache.flush_multi(is_category=True)
 
 		vals={'action':action,'postback':True}
 
@@ -822,9 +834,6 @@ class admin_authors(BaseRequestHandler):
 			page_index=int(self.param('page'))
 		except:
 			page_index=1
-
-
-
 
 		authors=User.all().filter('isAuthor =',True)
 		entries,pager=Pager(authors.count(), query=authors,items_per_page=15).fetch(page_index,cache_control='no_cache')

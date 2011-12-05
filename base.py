@@ -160,7 +160,7 @@ class Pager(object):
 		self.items_per_page = items_per_page
 		self.query_len = query_len
 
-	@object_cache(key_prefix='pager',type=CacheType.Pager)
+	@object_cache(key_prefix='pager',is_pager=True)
 	def fetch(self, p):
 		max_offset = self.query_len
 		n = max_offset / self.items_per_page
