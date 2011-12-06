@@ -47,7 +47,7 @@ def doRequestPostHandle(old_handler,new_handler,**args):
 		new_handler.initialize(old_handler.request,old_handler.response)
 		return  new_handler.post(**args)
 
-@object_cache(key_prefix='get_basic_info',type=CacheType.BasicInfo)
+@object_cache(key_prefix='get_basic_info',is_basicinfo=True)
 def _get_basic_info():
 	return {
 		'menu_pages':
@@ -70,7 +70,7 @@ def _get_basic_info():
 class BasePublicPage(BaseRequestHandler):
 	def initialize(self, request, response):
 		BaseRequestHandler.initialize(self,request, response)
-		self.template_vals.update(_get_basic_info(cache_depend_url=CacheDependUrlGen.gen_homepage(),cache_depend_blog_roll=True))
+		self.template_vals.update(_get_basic_info())
 
 	def m_list_pages(self):
 		menu_pages=[]

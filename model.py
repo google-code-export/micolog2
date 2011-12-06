@@ -507,7 +507,7 @@ class Entry(BaseModel):
 
 	def get_comments_by_page(self,index,psize):
 		@object_cache(key_prefix='entry.get_comments_by_page', is_comment=True,comment_type='ALL', is_pager=True)
-		def _get_comments_by_page(self,index,psize):
+		def _get_comments_by_page(index,psize):
 			all_comments = self.comments()
 			return all_comments[(index-1)*psize:index*psize]
 
@@ -589,8 +589,11 @@ class Entry(BaseModel):
 				# ratchet up the count
 				archive.entrycount += cnt
 				archive.put()
-			ObjCache.update_basic_info(update_archives=True)
-			ObjCache.flush_multi(is_archive=True)
+			try:
+				ObjCache.update_basic_info(update_archives=True)
+				ObjCache.flush_multi(is_archive=True)
+			except Exception,e:
+				logging.error(e.message)
 		g_blog.entrycount+=cnt
 		g_blog.put()
 
@@ -679,7 +682,7 @@ class Entry(BaseModel):
 	@property
 	def relateposts(self):
 		@object_cache(key_prefix='entry.relateposts', is_relativePosts=True, entry_type='POST')
-		def _relateposts(self):
+		def _relateposts():
 			if  self._relatepost:
 				return self._relatepost
 			else:
@@ -1013,13 +1016,12 @@ def InitBlogData():
 	settings._target = None
 	activate(g_blog.language)
 	g_blog.save()
-
-	entry=Entry(title=_("Hello world!").decode('utf8'))
-	entry.content=_('<p>Welcome to Micolog. This is your first post. Edit or delete it, then start blogging!</p>').decode('utf8')
-	entry.save(True)
-	entry=Entry(title="欢迎使用Micolog2")
-	entry.content='<p>Micolog2是对Micolog的数据库操作优化后的版本。在现有GAE的免费配额下，让您的博客重新轻松应对成百上千的日访问量。</p>'
-	entry.content+='<p>--Rex (http://blog.rexzhao.com)</p>'
+	entry=Entry(title=u"欢迎使用Micolog2")
+	entry.content=u'<p>Micolog2是对Micolog的数据库操作优化后的版本。在现有GAE的免费配额下，让您的博客重新轻松应对成百上千的日访问量。</p>'
+	entry.content=u'<p>Micolog2对主题部分的接口没有任何改动，因此您可以搭配已有的任何Micolog主题。</p>'
+	entry.content+=u'<p>-- Rex</p>'
+	entry.content+=u'<p>有关Micolog2的最新消息： http://micolog2.rexzhao.com</p>'
+	
 	entry.save(True)
 	link=Link(href='http://blog.rexzhao.com',linktext="Rex's blog")
 	link.put()
@@ -1050,8 +1052,8 @@ try:
 	from django.conf import settings
 	settings._target = None
 	activate(g_blog.language)
-except:
-	pass
+except Exception,e:
+	logging.error(e.message)
 
 
 

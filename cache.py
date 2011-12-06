@@ -85,7 +85,8 @@ class ObjCache(db.Model):
 			logging.error(e.message)
 			return None
 
-	def update_basic_info(self,
+	@staticmethod
+	def update_basic_info(
 		update_categories=False,
 		update_tags=False,
 		update_links=False,
@@ -158,11 +159,15 @@ def object_cache(key_prefix='',
 				del kwargs[key_parameter_name]
 
 			cache_args = other_kwargs
+			to_add = {}
 			for parameter_name in kwargs:
 				if parameter_name.startswith(cache_parameter_prefix):
 					cache_arg_name = parameter_name[len(cache_parameter_prefix):]
-					cache_args[cache_arg_name] = kwargs[parameter_name]
-					del kwargs[parameter_name]
+					to_add[cache_arg_name] = kwargs[parameter_name]
+					
+			for parameter in to_add:
+				cache_args[parameter] = to_add[parameter]
+				del kwargs[cache_parameter_prefix + parameter]
 					
 			cache_control = 'cache'
 			if cache_control_parameter_name in kwargs:
@@ -252,11 +257,14 @@ def request_cache(key_prefix='',
 
 			cache_args = other_kwargs
 			cache_args['is_htmlpage'] = True
+			to_add = {}
 			for parameter_name in kwargs:
 				if parameter_name.startswith(cache_parameter_prefix):
 					cache_arg_name = parameter_name[len(cache_parameter_prefix):]
-					cache_args[cache_arg_name] = kwargs[parameter_name]
-					del kwargs[parameter_name]
+					to_add[cache_arg_name] = kwargs[parameter_name]
+			for parameter in to_add:
+				cache_args[parameter] = to_add[parameter]
+				del kwargs[cache_parameter_prefix + parameter]
 
 			cache_control = 'cache'
 			if cache_control_parameter_name in kwargs:
