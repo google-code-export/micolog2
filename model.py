@@ -1018,7 +1018,7 @@ def InitBlogData():
 	g_blog.save()
 	entry=Entry(title=u"欢迎使用Micolog2")
 	entry.content=u'<p>Micolog2是对Micolog的数据库操作优化后的版本。在现有GAE的免费配额下，让您的博客重新轻松应对成百上千的日访问量。</p>'
-	entry.content=u'<p>Micolog2对主题部分的接口没有任何改动，因此您可以搭配已有的任何Micolog主题。</p>'
+	entry.content+=u'<p>Micolog2对主题部分的接口没有任何改动，因此您可以搭配已有的任何Micolog主题。</p>'
 	entry.content+=u'<p>-- Rex</p>'
 	entry.content+=u'<p>有关Micolog2的最新消息： http://micolog2.rexzhao.com</p>'
 	

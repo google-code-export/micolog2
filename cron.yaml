@@ -1,0 +1,4 @@
+cron:
+- description: daily cache clean-up
+  url: /task/clean-cache
+  schedule: every day 00:00

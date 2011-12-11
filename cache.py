@@ -158,6 +158,11 @@ def object_cache(key_prefix='',
 				key = key+'_'+kwargs[key_parameter_name]
 				del kwargs[key_parameter_name]
 
+			cache_control = 'cache'
+			if cache_control_parameter_name in kwargs:
+				cache_control = kwargs[cache_control_parameter_name]
+				del kwargs[cache_control_parameter_name]
+				
 			cache_args = other_kwargs
 			to_add = {}
 			for parameter_name in kwargs:
@@ -168,11 +173,6 @@ def object_cache(key_prefix='',
 			for parameter in to_add:
 				cache_args[parameter] = to_add[parameter]
 				del kwargs[cache_parameter_prefix + parameter]
-					
-			cache_control = 'cache'
-			if cache_control_parameter_name in kwargs:
-				cache_control = kwargs[cache_control_parameter_name]
-				del kwargs[cache_control_parameter_name]
 
 			if cache_control == 'no_cache':
 				logging.debug('object_cache: no_cache for '+key)
@@ -255,6 +255,11 @@ def request_cache(key_prefix='',
 				key = key+'_'+kwargs[key_parameter_name]
 				del kwargs[key_parameter_name]
 
+			cache_control = 'cache'
+			if cache_control_parameter_name in kwargs:
+				cache_control = kwargs[cache_control_parameter_name]
+				del kwargs[cache_control_parameter_name]
+				
 			cache_args = other_kwargs
 			cache_args['is_htmlpage'] = True
 			to_add = {}
@@ -265,11 +270,6 @@ def request_cache(key_prefix='',
 			for parameter in to_add:
 				cache_args[parameter] = to_add[parameter]
 				del kwargs[cache_parameter_prefix + parameter]
-
-			cache_control = 'cache'
-			if cache_control_parameter_name in kwargs:
-				cache_control = kwargs[cache_control_parameter_name]
-				del kwargs[cache_control_parameter_name]
 
 			if cache_control == 'no_cache':
 				logging.debug('request_cache: no_cache for '+key)

@@ -4,6 +4,10 @@ runtime: python
 api_version: 1
 
 handlers:
+- url: /task/.*
+  script: tasks.py
+  login:admin
+  
 - url: /themes
   static_dir: themes_static
 
