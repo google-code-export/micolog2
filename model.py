@@ -503,7 +503,7 @@ class Entry(BaseModel):
 				return [comment for comment in Comment.all().filter('entry =',self).order('-date').fetch(limit=1000)]
 			else:
 				return [comment for comment in Comment.all().filter('entry =',self).order('date').fetch(limit=1000)]
-		return _comments(cache_entry_id=self.post_id)
+		return _comments(cache_entry_id=self.post_id, cache_key=str(self.post_id))
 
 	def get_comments_by_page(self,index,psize):
 		@object_cache(key_prefix='entry.get_comments_by_page', is_comment=True,comment_type='ALL', is_pager=True)
