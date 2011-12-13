@@ -532,7 +532,7 @@ class Entry(BaseModel):
 				return [comment for comment in Comment.all().filter('entry =',self).filter('ctype =',0).order('-date').fetch(limit=1000)]
 			else:
 				return [comment for comment in Comment.all().filter('entry =',self).filter('ctype =',0).order('date').fetch(limit=1000)]
-		return _purecomments(cache_entry_id=self.post_id)
+		return _purecomments(cache_entry_id=self.post_id, cache_key=str(self.post_id))
 
 	def purecomments_count(self):
 		return get_query_count(
