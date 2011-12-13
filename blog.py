@@ -577,12 +577,16 @@ class Post_comment(BaseRequestHandler):
 					else:
 						self.error(-102,_('Your check code is invalid .'))
 					return
-			except:
+			except Exception:
+				logging.exception('Error when checking CAPTCHA')
+				#Assume the captcha is right, which is less confusing. TODO: send admin an email to notify this event
+				'''
 				if useajax:
 					self.write(simplejson.dumps((False,-102,_('Your check code is invalid .')),ensure_ascii = False))
 				else:
 					self.error(-102,_('Your check code is invalid .'))
 				return
+				'''
 
 		sess.invalidate()
 		content=content.replace('\n','<br />')
@@ -592,7 +596,7 @@ class Post_comment(BaseRequestHandler):
 
 		if not (name and email and content):
 			if useajax:
-						self.write(simplejson.dumps((False,-101,_('Please input name, email and comment .'))))
+				self.write(simplejson.dumps((False,-101,_('Please input name, email and comment .'))))
 			else:
 				self.error(-101,_('Please input name, email and comment .'))
 		else:
