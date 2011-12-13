@@ -217,11 +217,11 @@ class archive_by_month(BasePublicPage):
 		entries=db.GqlQuery("SELECT * FROM Entry WHERE date > :1 AND date <:2 AND entrytype =:3 AND published = True ORDER BY date DESC",firstday,lastday,'post')
 		entry_count = get_query_count(entries,
 		                              cache_key='archive_'+str(year)+'_'+str(month),
-		                              cache_depend_url=CacheDependUrlGen.gen_homepage())
+		                              cache_depend_url=CacheUrlFormatter.gen_homepage())
 		entries,links=Pager(query_len=entry_count, query=entries).fetch(
 			page_index,
 		    cache_key = 'archive_'+str(year)+'_'+str(month),
-		    cache_depend_url=CacheDependUrlGen.gen_homepage(),
+		    cache_depend_url=CacheUrlFormatter.gen_homepage(),
 		    )
 		self.render('month',{'entries':entries,'year':year,'month':month,'pager':links})
 
@@ -250,7 +250,7 @@ class entriesByTag(BasePublicPage):
 		entries=Entry.all().filter("published =", True).filter('tags =',slug).order("-date")
 		entry_count = get_query_count(entries,
 		                              cache_key='tag_'+slug,
-		                              cache_depend_url=CacheDependUrlGen.gen_homepage())
+		                              cache_depend_url=CacheUrlFormatter.gen_homepage())
 		entries,links=Pager(query_len=entry_count, query=entries, items_per_page=20).fetch(
 			page_index,
 		    cache_control='no_cache'
@@ -267,29 +267,20 @@ class SinglePost(BasePublicPage):
 		if postid is None:
 			slug=urldecode(slug)
 			entry = Entry.all().filter("published =", True).filter('link =', slug).get()
-			if not entry:
-				return self.error(404)
-			else:
-				postid = entry.post_id
+		else:
+			entry = Entry.all().filter("published =", True).filter('post_id =', postid).get()
+		if not entry:
+			return self.error(404)
+		
 		return self._get(
-			postid,
+			entry,
 			cache_entry_type = 'POST',
-		    cache_entry_id = postid
+		    cache_entry_id = entry.post_id,
 		)
 
 	@request_cache(key_prefix='single_post')
-	def _get(self,postid):
-		if postid:
-			entries = Entry.all().filter("published =", True).filter('post_id =', postid).fetch(1)
-		else:
-			slug=urldecode(slug)
-			entries = Entry.all().filter("published =", True).filter('link =', slug).fetch(1)
-		if not entries or len(entries) == 0:
-			return self.error(404)
-
+	def _get(self,entry):
 		mp=self.paramint("mp",1)
-
-		entry=entries[0]
 		if entry.is_external_page:
 			return self.redirect(entry.external_page_address,True)
 		if g_blog.allow_pingback and entry.allow_trackback:
@@ -300,10 +291,6 @@ class SinglePost(BasePublicPage):
 		#already cached in get_comments_by_page function
 		comments=entry.get_comments_by_page(index=mp,psize=self.blog.comments_per_page)
 		
-##		commentuser=self.request.cookies.get('comment_user', '')
-##		if commentuser:
-##			commentuser=commentuser.split('#@#')
-##		else:
 		commentuser=['','','']
 		#already cached for purecomments_count()
 		comments_nav=self.get_comments_nav(mp,entry.purecomments_count())

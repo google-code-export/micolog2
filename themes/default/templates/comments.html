@@ -1,12 +1,11 @@
-
 <!-- You can start editing here. -->
 {% if entry.allow_comment %}
-{% if entry.comments.count%}
-	<h3 id="comments">{{entry.comments.count}} Responses to &#8220;{{entry.title}}&#8221;</h3>
+{% if entry.commentcount %}
+	<h3 id="comments">{{entry.commentcount}} Responses to &#8220;{{entry.title}}&#8221;</h3>
 
 	<ol class="commentlist">
 
-	{% for comment in entry.comments %}
+	{% for comment in comments %}
 
 		<li class="{%cycle alt1,alt %}" id="comment-{{comment.key.id}}">
 			<div class="gravatar"><img height="50" width="50" class="avatar avatar-50" src="{{comment.gravatar_url}}" alt=""/></div>
@@ -20,8 +19,6 @@
 			<div class="clear"></div>
 
 		</li>
-
-
 
 	{%endfor%}
 
@@ -112,5 +109,5 @@
 </script>
 
 {% else %}
-<p class="nocomments">ÆÀÂÛÒÑ¹Ø±Õ</p>
+<p class="nocomments">ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¹Ø±ï¿½</p>
 {% endif %}

@@ -1,13 +1,13 @@
 application: micolog2
-version: beta
+version: rc-update-dec-11-2011
 runtime: python
 api_version: 1
 
 handlers:
 - url: /task/.*
   script: tasks.py
-  login:admin
-  
+  login: admin
+
 - url: /themes
   static_dir: themes_static
 
