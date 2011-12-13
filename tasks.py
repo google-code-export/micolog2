@@ -3,13 +3,15 @@
 #this file is under GPL v3 license
 #Author: Rex  fdrex1987@gmail.com
 ##################################################
+import logging
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
-from cache import *
+from cache import ObjCache
 
 class CleanCache(webapp.RequestHandler):
     def get(self):
-        ObjCachhe.flush_all()
+        ObjCache.flush_all()
+        logging.debug('TASK: Clean Cache finished')
 
 application = webapp.WSGIApplication(
                                      [('/task/clean-cache', CleanCache)],
