@@ -130,59 +130,59 @@ class ObjCache(db.Model):
 		try:
 			memcache.set(key,value_obj)
 			l = []
-			l.append('is_htmlpage='+str(is_htmlpage))
-			l.append('is_recentposts='+str(is_recentposts))
-			l.append('entry_type='+str(entry_type))
-			l.append('is_sticky='+str(is_sticky))
-			l.append('is_comment='+str(is_comment))
-			l.append('comment_type='+str(comment_type))
-			l.append('is_basicinfo='+str(is_basicinfo))
-			l.append('is_relativePosts='+str(is_relativePosts))
-			l.append('is_link='+str(is_link))
-			l.append('is_tag='+str(is_tag))
-			l.append('is_category='+str(is_category))
-			l.append('is_archive='+str(is_archive))
-			l.append('is_count='+str(is_count))
-			l.append('is_aggregation='+str(is_aggregation))
-			l.append('is_pager='+str(is_pager))
-			l.append('category='+str(category))
-			l.append('entry_id='+str(entry_id))
-			l.append('pager_id='+str(pager_id))
-			l.append('tag='+str(tag))
-			l.append('url='+str(url))
+			l.append(u'is_htmlpage='+unicode(is_htmlpage))
+			l.append(u'is_recentposts='+unicode(is_recentposts))
+			l.append(u'entry_type='+unicode(entry_type))
+			l.append(u'is_sticky='+unicode(is_sticky))
+			l.append(u'is_comment='+unicode(is_comment))
+			l.append(u'comment_type='+unicode(comment_type))
+			l.append(u'is_basicinfo='+unicode(is_basicinfo))
+			l.append(u'is_relativePosts='+unicode(is_relativePosts))
+			l.append(u'is_link='+unicode(is_link))
+			l.append(u'is_tag='+unicode(is_tag))
+			l.append(u'is_category='+unicode(is_category))
+			l.append(u'is_archive='+unicode(is_archive))
+			l.append(u'is_count='+unicode(is_count))
+			l.append(u'is_aggregation='+unicode(is_aggregation))
+			l.append(u'is_pager='+unicode(is_pager))
+			l.append(u'category='+unicode(category))
+			l.append(u'entry_id='+unicode(entry_id))
+			l.append(u'pager_id='+unicode(pager_id))
+			l.append(u'tag='+unicode(tag))
+			l.append(u'url='+unicode(url))
 
 			#logging.debug('kwargs: '+str(kwargs))
 			ObjCache(cache_key=key,value=pickle.dumps(value_obj), tags=l).put()
-			logging.debug("ObjCache created with key: " + key + " and with tags: " + str(l))
+			logging.debug("ObjCache created with key: " + key + " and with tags: " + unicode(l))
 		except Exception:
 			logging.exception('Exception in cache.create.')
 
 	@staticmethod
 	def flush_multi(**kwargs):
-		logging.debug('ObjCache.flush_multi called with parameters: '+str(kwargs))
+		logging.debug('ObjCache.flush_multi called with parameters: '+unicode(kwargs))
 		flush = ObjCache.all()
 		for key in kwargs:
-			flush = flush.filter('tags =',key+'='+str(kwargs[key]))
+			flush = flush.filter('tags =',key+'='+unicode(kwargs[key]))
 		for obj in flush:
 			obj.invalidate()
 
 	@staticmethod
 	def filter(**kwargs):
-		logging.debug('ObjCache.filter with parameters: '+str(kwargs))
+		logging.debug('ObjCache.filter with parameters: '+unicode(kwargs))
 		result = ObjCache.all()
 		for key in kwargs:
-			result = result.filter('tags =',key+'='+str(kwargs[key]))
+			result = result.filter('tags =',key+'='+unicode(kwargs[key]))
 		return result
 
 	@staticmethod
 	def get(**kwargs):
-		logging.debug('ObjCache.get with parameters: '+str(kwargs))
+		logging.debug('ObjCache.get with parameters: '+unicode(kwargs))
 		result = ObjCache.all()
 		for key in kwargs:
-			result = result.filter('tags =',key+'='+str(kwargs[key]))
+			result = result.filter('tags =',key+'='+unicode(kwargs[key]))
 		result = result.get()
 		if result:
-			logging.debug('ObjCache.get result: ' + str(result.cache_key))
+			logging.debug('ObjCache.get result: ' + unicode(result.cache_key))
 		return result
 
 	@classmethod
@@ -197,10 +197,10 @@ class ObjCache(db.Model):
 			for cache in ObjCache.all():
 				i = i+1
 				cache.delete()
-			logging.debug('ObjCache.flush_all: '+str(i)+" items flushed")
+			logging.debug('ObjCache.flush_all: '+unicode(i)+" items flushed")
 		except Exception:
 			logging.exception('Exception in ObjCache.flush_all')
-			logging.debug('ObjCache.flush_all: '+str(i)+" items flushed")
+			logging.debug('ObjCache.flush_all: '+unicode(i)+" items flushed")
 
 def object_cache(key_prefix='',
                  key_parameter_name='cache_key',
