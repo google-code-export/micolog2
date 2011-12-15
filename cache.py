@@ -90,7 +90,16 @@ class ObjCache(db.Model):
 		self.cache_key = cache_key
 		self.value = value
 		self.tags = l
-		super(ObjCache,self).__init__()
+
+		logging.debug("cache init called")
+		logging.debug('cache_key='+self.cache_key)
+		#logging.debug('value='+self.value)
+		logging.debug('tags='+str(self.tags))
+
+		try:
+			super(ObjCache,self).__init__()
+		except Exception,e:
+			logging.exception('in cache.init')
 
 	def invalidate(self):
 		logging.debug('ObjCache invalidate called: ' + self.cache_key)
@@ -107,10 +116,12 @@ class ObjCache(db.Model):
 	def get_cache_value(key_name):
 		result = memcache.get(key_name)
 		if result is not None:
+			logging.debug("Find cache value of "+key_name+" in memcache.")
 			return result
 		try:
 			result = ObjCache.all().filter('cache_key =',key_name).get()
 			if result is not None:
+				logging.debug("Find cache value of "+key_name+" in ObjCache.")
 				return pickle.loads(result.value)
 			else:
 				return None
@@ -128,7 +139,7 @@ class ObjCache(db.Model):
 		update_pages=False):
 
 		from model import Entry,Archive,Comment,Category,Tag,Link
-		basic_info = ObjCache.all().filter('tags =','is_basicinfo=True').get()
+		basic_info = ObjCache.get(is_basicinfo=True)
 		if basic_info is not None:
 			info = ObjCache.get_cache_value(basic_info.cache_key)
 			if update_pages:
@@ -146,6 +157,8 @@ class ObjCache(db.Model):
 				info['alltags'] = Tag.all().order('-tagcount').fetch(limit=100)
 			if update_categories:
 				info['categories'] = Category.all().fetch(limit=1000)
+
+			logging.debug('basic_info updated')
 			basic_info.update(info)
 
 	@staticmethod
@@ -154,11 +167,12 @@ class ObjCache(db.Model):
 			memcache.set(key,value_obj)
 			ObjCache(cache_key=key,value=pickle.dumps(value_obj), **kwargs).put()
 			logging.debug("ObjCache created: " + key)
-		except Exception,e:
-			logging.error(e.message)
+		except Exception:
+			logging.exception('in cache.create. kwargs='+str(kwargs))
 
 	@staticmethod
 	def flush_multi(**kwargs):
+		logging.debug('ObjCache.flush_multi called with parameters: '+str(kwargs))
 		flush = ObjCache.all()
 		for key in kwargs:
 			flush = flush.filter('tags =',key+'='+str(kwargs[key]))
@@ -167,6 +181,7 @@ class ObjCache(db.Model):
 
 	@staticmethod
 	def filter(**kwargs):
+		logging.debug('ObjCache.filter with parameters: '+str(kwargs))
 		result = ObjCache.all()
 		for key in kwargs:
 			result = result.filter('tags =',key+'='+str(kwargs[key]))
@@ -174,10 +189,13 @@ class ObjCache(db.Model):
 
 	@staticmethod
 	def get(**kwargs):
+		logging.debug('ObjCache.get with parameters: '+str(kwargs))
 		result = ObjCache.all()
 		for key in kwargs:
 			result = result.filter('tags =',key+'='+str(kwargs[key]))
-		return result.get()
+		result = result.get()
+		logging.debug('ObjCache.get result: ' + str(result.cache_key))
+		return result
 
 	@classmethod
 	def flush_all(cls):
@@ -186,8 +204,15 @@ class ObjCache(db.Model):
 		'''
 		logging.debug('ObjCache flush all called')
 		memcache.flush_all()
-		for cache in ObjCache.all():
-			cache.delete()
+		i=0
+		try:
+			for cache in ObjCache.all():
+				i = i+1
+				cache.delete()
+			logging.DEBUG('ObjCache.flush_all: '+str(i)+" items flushed")
+		except Exception:
+			logging.exception('Exception in ObjCache.flush_all')
+			logging.DEBUG('ObjCache.flush_all: '+str(i)+" items flushed")
 
 def object_cache(key_prefix='',
                  key_parameter_name='cache_key',
