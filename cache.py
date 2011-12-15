@@ -62,45 +62,6 @@ class ObjCache(db.Model):
 #	tag = db.StringProperty(default='')
 #	url = db.StringProperty(default='')
 
-	def __init__(self,cache_key, value, is_htmlpage=False,is_recentposts=False,entry_type='',is_sticky=False,is_comment=False,
-	             comment_type='',is_basicinfo=False,is_relativePosts=False,is_link=False,is_tag=False,is_category=False,
-	             is_archive=False,is_count=False,is_aggregation=False,is_pager=False,category='',entry_id=-1,pager_id=-1,tag='',
-	             url=''):
-		l = []
-		l.append('is_htmlpage='+str(is_htmlpage))
-		l.append('is_recentposts='+str(is_recentposts))
-		l.append('entry_type='+str(entry_type))
-		l.append('is_sticky='+str(is_sticky))
-		l.append('is_comment='+str(is_comment))
-		l.append('comment_type='+str(comment_type))
-		l.append('is_basicinfo='+str(is_basicinfo))
-		l.append('is_relativePosts='+str(is_relativePosts))
-		l.append('is_link='+str(is_link))
-		l.append('is_tag='+str(is_tag))
-		l.append('is_category='+str(is_category))
-		l.append('is_archive='+str(is_archive))
-		l.append('is_count='+str(is_count))
-		l.append('is_aggregation='+str(is_aggregation))
-		l.append('is_pager='+str(is_pager))
-		l.append('category='+str(category))
-		l.append('entry_id='+str(entry_id))
-		l.append('pager_id='+str(pager_id))
-		l.append('tag='+str(tag))
-		l.append('url='+str(url))
-		self.cache_key = cache_key
-		self.value = value
-		self.tags = l
-
-		logging.debug("cache init called")
-		logging.debug('cache_key='+self.cache_key)
-		#logging.debug('value='+self.value)
-		logging.debug('tags='+str(self.tags))
-
-		try:
-			super(ObjCache,self).__init__()
-		except Exception,e:
-			logging.exception('in cache.init')
-
 	def invalidate(self):
 		logging.debug('ObjCache invalidate called: ' + self.cache_key)
 		memcache.delete(self.cache_key)
@@ -162,13 +123,39 @@ class ObjCache(db.Model):
 			basic_info.update(info)
 
 	@staticmethod
-	def create(key, value_obj, **kwargs):
+	def create(key, value_obj, is_htmlpage=False,is_recentposts=False,entry_type='',is_sticky=False,is_comment=False,
+	             comment_type='',is_basicinfo=False,is_relativePosts=False,is_link=False,is_tag=False,is_category=False,
+	             is_archive=False,is_count=False,is_aggregation=False,is_pager=False,category='',entry_id=-1,pager_id=-1,tag='',
+	             url=''):
 		try:
 			memcache.set(key,value_obj)
-			ObjCache(cache_key=key,value=pickle.dumps(value_obj), **kwargs).put()
-			logging.debug("ObjCache created: " + key)
+			l = []
+			l.append('is_htmlpage='+str(is_htmlpage))
+			l.append('is_recentposts='+str(is_recentposts))
+			l.append('entry_type='+str(entry_type))
+			l.append('is_sticky='+str(is_sticky))
+			l.append('is_comment='+str(is_comment))
+			l.append('comment_type='+str(comment_type))
+			l.append('is_basicinfo='+str(is_basicinfo))
+			l.append('is_relativePosts='+str(is_relativePosts))
+			l.append('is_link='+str(is_link))
+			l.append('is_tag='+str(is_tag))
+			l.append('is_category='+str(is_category))
+			l.append('is_archive='+str(is_archive))
+			l.append('is_count='+str(is_count))
+			l.append('is_aggregation='+str(is_aggregation))
+			l.append('is_pager='+str(is_pager))
+			l.append('category='+str(category))
+			l.append('entry_id='+str(entry_id))
+			l.append('pager_id='+str(pager_id))
+			l.append('tag='+str(tag))
+			l.append('url='+str(url))
+
+			#logging.debug('kwargs: '+str(kwargs))
+			ObjCache(cache_key=key,value=pickle.dumps(value_obj), tags=l).put()
+			logging.debug("ObjCache created with key: " + key + " and with tags: " + str(l))
 		except Exception:
-			logging.exception('in cache.create. kwargs='+str(kwargs))
+			logging.exception('Exception in cache.create.')
 
 	@staticmethod
 	def flush_multi(**kwargs):
@@ -194,7 +181,8 @@ class ObjCache(db.Model):
 		for key in kwargs:
 			result = result.filter('tags =',key+'='+str(kwargs[key]))
 		result = result.get()
-		logging.debug('ObjCache.get result: ' + str(result.cache_key))
+		if result:
+			logging.debug('ObjCache.get result: ' + str(result.cache_key))
 		return result
 
 	@classmethod
