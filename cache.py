@@ -197,10 +197,10 @@ class ObjCache(db.Model):
 			for cache in ObjCache.all():
 				i = i+1
 				cache.delete()
-			logging.DEBUG('ObjCache.flush_all: '+str(i)+" items flushed")
+			logging.debug('ObjCache.flush_all: '+str(i)+" items flushed")
 		except Exception:
 			logging.exception('Exception in ObjCache.flush_all')
-			logging.DEBUG('ObjCache.flush_all: '+str(i)+" items flushed")
+			logging.debug('ObjCache.flush_all: '+str(i)+" items flushed")
 
 def object_cache(key_prefix='',
                  key_parameter_name='cache_key',
