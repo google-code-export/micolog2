@@ -820,14 +820,12 @@ class Comment(db.Model):
 		self.entry.put()
 
 		#update cache
-		comment_count = ObjCache.all().filter('is_comment =',True).filter('comment_type =','ALL')\
-			.filter('is_count =',True).filter('entry_id =',self.entry.post_id).get()
+		comment_count = ObjCache.get(is_comment=True,comment_type='ALL',is_count=True,entry_id=self.entry.post_id)
 		if comment_count is not None:
 			count = ObjCache.get_cache_value(comment_count.cache_key)
 			comment_count.update(count+1)
 
-		comments_obj = ObjCache.all().filter('is_comment =',True).filter('comment_type =','ALL')\
-			.filter('is_aggregation =',True).filter('entry_id =',self.entry.post_id).get()
+		comments_obj = ObjCache.get(is_comment=True,comment_type='ALL',is_aggregation=True,entry_id=self.entry.post_id)
 		if comments_obj:
 			comments_val = ObjCache.get_cache_value(comments_obj.cache_key)
 			if g_blog.comments_order:#递减
@@ -837,14 +835,12 @@ class Comment(db.Model):
 			comments_obj.update(comments_val)
 		#update entry.purecomments()
 		if self.ctype == COMMENT_NORMAL:
-			comment_count = ObjCache.all().filter('is_comment =',True).filter('comment_type =','NORMAL')\
-				.filter('is_count =',True).filter('entry_id =',self.entry.post_id).get()
+			comment_count=ObjCache.get(is_comment=True,comment_type='NORMAL',is_count=True,entry_id=self.entry.post_id)
 			if comment_count is not None:
 				count = ObjCache.get_cache_value(comment_count.cache_key)
 				comment_count.update(count+1)
 
-			comments_obj = ObjCache.all().filter('is_comment =',True).filter('comment_type =','NORMAL')\
-			.filter('is_aggregation =',True).filter('entry_id =',self.entry.post_id).get()
+			comments_obj = ObjCache.get(is_comment=True,comment_type='NORMAL',is_aggregation=True,entry_id=self.entry.post_id)
 			if comments_obj:
 				comments_val = ObjCache.get_cache_value(comments_obj.cache_key)
 				if g_blog.comments_order:#递减
@@ -873,28 +869,24 @@ class Comment(db.Model):
 		self.delete()
 
 		#update cache
-		comment_count = ObjCache.all().filter('is_comment =',True).filter('comment_type =','ALL')\
-			.filter('is_count =',True).filter('entry_id =',self.entry.post_id).get()
+		comment_count = ObjCache.get(is_comment=True,comment_type='ALL',is_count=True,entry_id=self.entry.post_id)
 		if comment_count is not None:
 			count = ObjCache.get_cache_value(comment_count.cache_key)
 			comment_count.update(count-1)
 
-		comments_obj = ObjCache.all().filter('is_comment =',True).filter('comment_type =','ALL')\
-			.filter('is_aggregation =',True).filter('entry_id =',self.entry.post_id).get()
+		comments_obj = ObjCache.get(is_comment=True,comment_type='ALL',is_aggregation=True,entry_id=self.entry.post_id)
 		if comments_obj:
 			comments_val = ObjCache.get_cache_value(comments_obj.cache_key)
 			comments_val.remove(self)
 			comments_obj.update(comments_val)
 		#update entry.purecomments()
 		if self.ctype == COMMENT_NORMAL:
-			comment_count = ObjCache.all().filter('is_comment =',True).filter('comment_type =','NORMAL')\
-			.filter('is_count =',True).filter('entry_id =',self.entry.post_id).get()
+			comment_count = ObjCache.get(is_comment=True,comment_type='NORMAL',is_count=True,entry_id=self.entry.post_id)
 			if comment_count is not None:
 				count = ObjCache.get_cache_value(comment_count.cache_key)
 				comment_count.update(count-1)
 
-			comments_obj = ObjCache.all().filter('is_comment =',True).filter('comment_type =','NORMAL')\
-			.filter('is_aggregation =',True).filter('entry_id =',self.entry.post_id).get()
+			comments_obj = ObjCache.get(is_comment=True,comment_type='NORMAL',is_aggregation=True,entry_id=self.entry.post_id)
 			if comments_obj:
 				comments_val = ObjCache.get_cache_value(comments_obj.cache_key)
 				comments_val.remove(self)

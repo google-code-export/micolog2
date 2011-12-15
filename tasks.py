@@ -10,9 +10,9 @@ from cache import ObjCache
 
 class CleanCache(webapp.RequestHandler):
     def get(self):
-        #ObjCache.flush_all()
-        #logging.debug('TASK: Clean Cache finished')
-	    logging.debug("TASK: Clean Cache called, but currently we don't flush the cache")
+        ObjCache.flush_all()
+        logging.debug('TASK: Clean Cache finished')
+	    #logging.debug("TASK: Clean Cache called, but currently we don't flush the cache")
 
 application = webapp.WSGIApplication(
                                      [('/task/clean-cache', CleanCache)],

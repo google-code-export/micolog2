@@ -32,32 +32,65 @@ class ObjCache(db.Model):
 	value = db.BlobProperty()
 	#the following fields are used at cache auto invalidation
 	#一些Tag,用来标明该Obj的身份
-	is_htmlpage = db.BooleanProperty(default=False) #即request所缓存的那种
-	is_recentposts = db.BooleanProperty(default=False)
-	entry_type = db.StringProperty(default='') #'POST', 'PAGE
-	is_sticky = db.BooleanProperty(default=False)
+	#因为查询的时候跟index域很相关，为了减少GAE统计的操作次数，这些标记全部放到StringList里面
+	tags = db.StringListProperty()
 
-	is_comment = db.BooleanProperty(default=False)
-	comment_type = db.StringProperty(default='') #'ALL','NORMAL'
-	
-	is_basicinfo = db.BooleanProperty(default=False)
+#	is_htmlpage = db.BooleanProperty(default=False) #即request所缓存的那种
+#	is_recentposts = db.BooleanProperty(default=False)
+#	entry_type = db.StringProperty(default='') #'POST', 'PAGE
+#	is_sticky = db.BooleanProperty(default=False)
+#
+#	is_comment = db.BooleanProperty(default=False)
+#	comment_type = db.StringProperty(default='') #'ALL','NORMAL'
+#
+#	is_basicinfo = db.BooleanProperty(default=False)
+#
+#	is_relativePosts = db.BooleanProperty(default=False)
+#
+#	is_link = db.BooleanProperty(default=False)
+#	is_tag = db.BooleanProperty(default=False)
+#	is_category = db.BooleanProperty(default=False)
+#	is_archive = db.BooleanProperty(default=False)
+#
+#	is_count = db.BooleanProperty(default=False)
+#	is_aggregation = db.BooleanProperty(default=False)
+#	is_pager = db.BooleanProperty(default=False)
+#
+#	category = db.StringProperty(default='')
+#	entry_id = db.IntegerProperty(default=-1)#post_id
+#	pager_id = db.IntegerProperty(default=-1)
+#	tag = db.StringProperty(default='')
+#	url = db.StringProperty(default='')
 
-	is_relativePosts = db.BooleanProperty(default=False)
-
-	is_link = db.BooleanProperty(default=False)
-	is_tag = db.BooleanProperty(default=False)
-	is_category = db.BooleanProperty(default=False)
-	is_archive = db.BooleanProperty(default=False)
-
-	is_count = db.BooleanProperty(default=False)
-	is_aggregation = db.BooleanProperty(default=False)
-	is_pager = db.BooleanProperty(default=False)
-
-	category = db.StringProperty(default='')
-	entry_id = db.IntegerProperty(default=-1)#post_id
-	pager_id = db.IntegerProperty(default=-1)
-	tag = db.StringProperty(default='')
-	url = db.StringProperty(default='')
+	def __init__(self,cache_key, value, is_htmlpage=False,is_recentposts=False,entry_type='',is_sticky=False,is_comment=False,
+	             comment_type='',is_basicinfo=False,is_relativePosts=False,is_link=False,is_tag=False,is_category=False,
+	             is_archive=False,is_count=False,is_aggregation=False,is_pager=False,category='',entry_id=-1,pager_id=-1,tag='',
+	             url=''):
+		l = []
+		l.append('is_htmlpage='+str(is_htmlpage))
+		l.append('is_recentposts='+str(is_recentposts))
+		l.append('entry_type='+str(entry_type))
+		l.append('is_sticky='+str(is_sticky))
+		l.append('is_comment='+str(is_comment))
+		l.append('comment_type='+str(comment_type))
+		l.append('is_basicinfo='+str(is_basicinfo))
+		l.append('is_relativePosts='+str(is_relativePosts))
+		l.append('is_link='+str(is_link))
+		l.append('is_tag='+str(is_tag))
+		l.append('is_category='+str(is_category))
+		l.append('is_archive='+str(is_archive))
+		l.append('is_count='+str(is_count))
+		l.append('is_aggregation='+str(is_aggregation))
+		l.append('is_pager='+str(is_pager))
+		l.append('category='+str(category))
+		l.append('entry_id='+str(entry_id))
+		l.append('pager_id='+str(pager_id))
+		l.append('tag='+str(tag))
+		l.append('url='+str(url))
+		self.cache_key = cache_key
+		self.value = value
+		self.tags = l
+		super(ObjCache,self).__init__()
 
 	def invalidate(self):
 		logging.debug('ObjCache invalidate called: ' + self.cache_key)
@@ -95,7 +128,7 @@ class ObjCache(db.Model):
 		update_pages=False):
 
 		from model import Entry,Archive,Comment,Category,Tag,Link
-		basic_info = ObjCache.all().filter('is_basicinfo =',True).get()
+		basic_info = ObjCache.all().filter('tags =','is_basicinfo=True').get()
 		if basic_info is not None:
 			info = ObjCache.get_cache_value(basic_info.cache_key)
 			if update_pages:
@@ -128,9 +161,23 @@ class ObjCache(db.Model):
 	def flush_multi(**kwargs):
 		flush = ObjCache.all()
 		for key in kwargs:
-			flush = flush.filter(key+' =',kwargs[key])
+			flush = flush.filter('tags =',key+'='+str(kwargs[key]))
 		for obj in flush:
 			obj.invalidate()
+
+	@staticmethod
+	def filter(**kwargs):
+		result = ObjCache.all()
+		for key in kwargs:
+			result = result.filter('tags =',key+'='+str(kwargs[key]))
+		return result
+
+	@staticmethod
+	def get(**kwargs):
+		result = ObjCache.all()
+		for key in kwargs:
+			result = result.filter('tags =',key+'='+str(kwargs[key]))
+		return result.get()
 
 	@classmethod
 	def flush_all(cls):
