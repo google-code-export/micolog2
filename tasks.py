@@ -10,7 +10,7 @@ from cache import ObjCache
 
 class CleanCache(webapp.RequestHandler):
     def get(self):
-        ObjCache.flush_all()
+        ObjCache.flush_multi(is_archive=True)
         logging.debug('TASK: Clean Cache finished')
 	    #logging.debug("TASK: Clean Cache called, but currently we don't flush the cache")
 

@@ -121,7 +121,7 @@ class MainPage(BasePublicPage):
 			except:
 				return self.error(404)
 
-	@request_cache(key_prefix='HomePage', url=CacheUrlFormatter.gen_homepage())
+	@request_cache(key_prefix='HomePage', is_aggregation=True)
 	def doget(self,page):
 		page=int(page)
 		entrycount=g_blog.postscount()
@@ -170,7 +170,7 @@ class entriesByCategory(BasePublicPage):
 		cats=Category.all().filter('slug =',slug).fetch(1)
 		if cats:
 			return self._get(cats,
-		                    cache_url=CacheUrlFormatter.gen_tag(slug),
+			                cache_is_aggregation=True,
 		                    cache_entry_type = 'POST',
 		                    cache_is_category=True,
 			                cache_category = cats[0].name
@@ -197,7 +197,7 @@ class entriesByCategory(BasePublicPage):
 class archive_by_month(BasePublicPage):
 	def get(self,year,month):
 		return self._get(year,month,
-		                 cache_url=CacheUrlFormatter.gen_archive(year,month),
+		                 is_aggregation=True,
 		                 cache_entry_type='POST',
 		                 cache_is_archive=True
 		                 )
@@ -217,18 +217,18 @@ class archive_by_month(BasePublicPage):
 		entries=db.GqlQuery("SELECT * FROM Entry WHERE date > :1 AND date <:2 AND entrytype =:3 AND published = True ORDER BY date DESC",firstday,lastday,'post')
 		entry_count = get_query_count(entries,
 		                              cache_key='archive_'+str(year)+'_'+str(month),
-		                              cache_url=CacheUrlFormatter.gen_homepage())
+		                              cache_is_archive=True)
 		entries,links=Pager(query_len=entry_count, query=entries).fetch(
 			page_index,
 		    cache_key = 'archive_'+str(year)+'_'+str(month),
-		    cache_url=CacheUrlFormatter.gen_homepage(),
+		    cache_is_archive=True,
 		    )
 		self.render('month',{'entries':entries,'year':year,'month':month,'pager':links})
 
 class entriesByTag(BasePublicPage):
 	def get(self,slug):
 		return self._get(slug,
-		                 cache_url=CacheUrlFormatter.gen_tag(slug),
+		                 cache_is_aggregation=True,
 		                 cache_entry_type = 'POST',
 		                 cache_is_tag = True,
 		                 cache_tag = slug
@@ -250,7 +250,7 @@ class entriesByTag(BasePublicPage):
 		entries=Entry.all().filter("published =", True).filter('tags =',slug).order("-date")
 		entry_count = get_query_count(entries,
 		                              cache_key='tag_'+slug,
-		                              cache_url=CacheUrlFormatter.gen_homepage())
+		                              is_aggregation=True)
 		entries,links=Pager(query_len=entry_count, query=entries, items_per_page=20).fetch(
 			page_index,
 		    cache_control='no_cache'
@@ -452,8 +452,7 @@ class SinglePost(BasePublicPage):
 			return "/"+url+"?mp="+str(pindex)+"#comments"
 
 class FeedHandler(BaseRequestHandler):
-	#这里冒充下homepage，以便随着post更新
-	@request_cache(key_prefix='feed',url=CacheUrlFormatter.gen_homepage())
+	@request_cache(key_prefix='feed',is_aggregation=True)
 	def get(self,tags=None):
 		entries = Entry.all().filter('entrytype =','post').filter('published =',True).order('-date').fetch(10)
 		if entries and entries[0]:
@@ -479,8 +478,7 @@ class CommentsFeedHandler(BaseRequestHandler):
 		self.render2('views/comments.xml',{'comments':comments,'last_updated':last_updated})
 
 class SitemapHandler(BaseRequestHandler):
-	#同样冒充下首页来得到更新
-	@request_cache(key_prefix='sitemap',url=CacheUrlFormatter.gen_homepage())
+	@request_cache(key_prefix='sitemap',is_aggregation=True)
 	def get(self,tags=None):
 		urls = []
 		def addurl(loc,lastmod=None,changefreq=None,priority=None):

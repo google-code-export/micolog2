@@ -10,23 +10,6 @@ from google.appengine.ext import db
 from google.appengine.api import memcache
 from datetime import datetime
 
-class CacheUrlFormatter(object):
-	@staticmethod
-	def gen_tag(slug):
-		return '/tag/'+slug
-
-	@staticmethod
-	def gen_category(slug):
-		return '/category/'+slug
-
-	@staticmethod
-	def gen_homepage():
-		return '/'
-
-	@staticmethod
-	def gen_archive(year, month):
-		return '/'+str(year)+'/'+str(month)
-
 class ObjCache(db.Model):
 	cache_key = db.StringProperty()
 	value = db.BlobProperty()
@@ -60,7 +43,6 @@ class ObjCache(db.Model):
 #	entry_id = db.IntegerProperty(default=-1)#post_id
 #	pager_id = db.IntegerProperty(default=-1)
 #	tag = db.StringProperty(default='')
-#	url = db.StringProperty(default='')
 
 	def invalidate(self):
 		logging.debug('ObjCache invalidate called: ' + self.cache_key)
@@ -123,33 +105,51 @@ class ObjCache(db.Model):
 			basic_info.update(info)
 
 	@staticmethod
-	def create(key, value_obj, is_htmlpage=False,is_recentposts=False,entry_type='',is_sticky=False,is_comment=False,
-	             comment_type='',is_basicinfo=False,is_relativePosts=False,is_link=False,is_tag=False,is_category=False,
-	             is_archive=False,is_count=False,is_aggregation=False,is_pager=False,category='',entry_id=-1,pager_id=-1,tag='',
-	             url=''):
+	def create(key, value_obj, is_htmlpage=None,is_recentposts=None,entry_type=None,is_sticky=None,is_comment=None,
+	             comment_type=None,is_basicinfo=None,is_relativePosts=None,is_link=None,is_tag=None,is_category=None,
+	             is_archive=None,is_count=None,is_aggregation=None,is_pager=None,category=None,entry_id=None,pager_id=None,tag=None,
+	             ):
 		try:
 			memcache.set(key,value_obj)
 			l = []
-			l.append(u'is_htmlpage='+unicode(is_htmlpage))
-			l.append(u'is_recentposts='+unicode(is_recentposts))
-			l.append(u'entry_type='+unicode(entry_type))
-			l.append(u'is_sticky='+unicode(is_sticky))
-			l.append(u'is_comment='+unicode(is_comment))
-			l.append(u'comment_type='+unicode(comment_type))
-			l.append(u'is_basicinfo='+unicode(is_basicinfo))
-			l.append(u'is_relativePosts='+unicode(is_relativePosts))
-			l.append(u'is_link='+unicode(is_link))
-			l.append(u'is_tag='+unicode(is_tag))
-			l.append(u'is_category='+unicode(is_category))
-			l.append(u'is_archive='+unicode(is_archive))
-			l.append(u'is_count='+unicode(is_count))
-			l.append(u'is_aggregation='+unicode(is_aggregation))
-			l.append(u'is_pager='+unicode(is_pager))
-			l.append(u'category='+unicode(category))
-			l.append(u'entry_id='+unicode(entry_id))
-			l.append(u'pager_id='+unicode(pager_id))
-			l.append(u'tag='+unicode(tag))
-			l.append(u'url='+unicode(url))
+			if is_htmlpage is not None:
+				l.append(u'is_htmlpage='+unicode(is_htmlpage))
+			if is_recentposts is not None:
+				l.append(u'is_recentposts='+unicode(is_recentposts))
+			if entry_type is not None:
+				l.append(u'entry_type='+unicode(entry_type))
+			if is_sticky is not None:
+				l.append(u'is_sticky='+unicode(is_sticky))
+			if is_comment is not None:
+				l.append(u'is_comment='+unicode(is_comment))
+			if comment_type is not None:
+				l.append(u'comment_type='+unicode(comment_type))
+			if is_basicinfo is not None:
+				l.append(u'is_basicinfo='+unicode(is_basicinfo))
+			if is_relativePosts is not None:
+				l.append(u'is_relativePosts='+unicode(is_relativePosts))
+			if is_link is not None:
+				l.append(u'is_link='+unicode(is_link))
+			if is_tag is not None:
+				l.append(u'is_tag='+unicode(is_tag))
+			if is_category is not None:
+				l.append(u'is_category='+unicode(is_category))
+			if is_archive is not None:
+				l.append(u'is_archive='+unicode(is_archive))
+			if is_count is not None:
+				l.append(u'is_count='+unicode(is_count))
+			if is_aggregation is not None:
+				l.append(u'is_aggregation='+unicode(is_aggregation))
+			if is_pager is not None:
+				l.append(u'is_pager='+unicode(is_pager))
+			if category is not None:
+				l.append(u'category='+unicode(category))
+			if entry_id is not None:
+				l.append(u'entry_id='+unicode(entry_id))
+			if pager_id is not None:
+				l.append(u'pager_id='+unicode(pager_id))
+			if tag is not None:
+				l.append(u'tag='+unicode(tag))
 
 			#logging.debug('kwargs: '+str(kwargs))
 			ObjCache(cache_key=key,value=pickle.dumps(value_obj), tags=l).put()

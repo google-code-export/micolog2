@@ -584,7 +584,7 @@ class admin_entries(BaseRequestHandler):
 					ObjCache.flush_multi(is_htmlpage=True)
 				else:
 					ObjCache.flush_multi(entry_type='POST', entry_id=entry.post_id)
-					ObjCache.flush_multi(is_htmlpage=True, url=CacheUrlFormatter.gen_homepage())
+					ObjCache.flush_multi(is_htmlpage=True, is_aggregation=True)
 					ObjCache.flush_multi(is_recentposts=True)
 					ObjCache.flush_multi(is_relativePosts=True)
 					ObjCache.flush_multi(is_archive=True)

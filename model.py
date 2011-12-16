@@ -656,7 +656,7 @@ class Entry(BaseModel):
 			ObjCache.flush_multi(is_htmlpage=True)
 		else:
 			ObjCache.flush_multi(entry_type='POST', entry_id=self.post_id)
-			ObjCache.flush_multi(is_htmlpage=True, url=CacheUrlFormatter.gen_homepage())
+			ObjCache.flush_multi(is_htmlpage=True, is_aggregation=True)
 			ObjCache.flush_multi(is_recentposts=True)
 			ObjCache.flush_multi(is_relativePosts=True)
 			ObjCache.flush_multi(is_archive=True)
@@ -726,7 +726,7 @@ class Entry(BaseModel):
 			ObjCache.flush_multi(is_htmlpage=True)
 		else:
 			ObjCache.flush_multi(entry_type='POST', entry_id=self.post_id)
-			ObjCache.flush_multi(is_htmlpage=True, url=CacheUrlFormatter.gen_homepage())
+			ObjCache.flush_multi(is_htmlpage=True, is_aggregation=True)
 			ObjCache.flush_multi(is_recentposts=True)
 			ObjCache.flush_multi(is_relativePosts=True)
 			ObjCache.flush_multi(is_archive=True)
@@ -851,7 +851,7 @@ class Comment(db.Model):
 
 		ObjCache.flush_multi(is_comment=True,is_pager=True, entry_id=self.entry.post_id)
 		#no need to invalidate all pages, home page is enough for most people
-		ObjCache.flush_multi(is_htmlpage=True,url=CacheUrlFormatter.gen_homepage())
+		ObjCache.flush_multi(is_htmlpage=True,is_aggregation=True)
 		ObjCache.flush_multi(is_htmlpage=True,entry_id=self.entry.post_id)
 		ObjCache.update_basic_info(update_comments=True)
 		
@@ -894,7 +894,7 @@ class Comment(db.Model):
 
 		ObjCache.flush_multi(is_comment=True,is_pager=True, entry_id=self.entry.post_id)
 		#no need to invalidate all pages, home page is enough for most people
-		ObjCache.flush_multi(is_htmlpage=True,url=CacheUrlFormatter.gen_homepage())
+		ObjCache.flush_multi(is_htmlpage=True,is_aggregation=True)
 		ObjCache.flush_multi(is_htmlpage=True,entry_id=self.entry.post_id)
 		ObjCache.update_basic_info(update_comments=True)
 
