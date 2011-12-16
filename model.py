@@ -225,13 +225,13 @@ class Blog(db.Model):
 	def hotposts(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-readtimes').fetch(8)
 
-	@object_cache(key_prefix='recentposts',entry_type='POST',is_aggregation=True,is_recentposts=True)
+	@object_cache(key_prefix='recentposts',is_aggregation=True)
 	def recentposts(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-date').fetch(8)
 
 	def postscount(self):
 		query = Entry.all().filter('entrytype =','post').filter("published =", True).order('-date')
-		return get_query_count(query,cache_key='blog.postscount',cache_entry_type='POST')
+		return get_query_count(query,cache_key='blog.postscount')
 
 class Category(db.Model):
 	uid=db.IntegerProperty()
@@ -245,17 +245,14 @@ class Category(db.Model):
 
 	@property
 	def count(self):
-		query = Entry.all().filter('entrytype =','post').filter("published =", True).filter('categorie_keys =',self)
-		return get_query_count(query,
-		                       cache_key='category_'+self.slug,
-		                       cache_entry_type='POST',
-		                       cache_is_category=True,
-		                       cache_category=self.name)
+		@object_memcache(key_prefix='category.count', time=3600*24)
+		def __count():
+			return Entry.all().filter('entrytype =','post').filter("published =", True).filter('categorie_keys =',self).count()
+		return __count(cache_key=self.slug)
 
 	def update_cache(self):
-		ObjCache.flush_multi(is_htmlpage=True,entry_type='POST')
+		ObjCache.flush_multi(is_htmlpage=True)
 		ObjCache.update_basic_info(update_categories=True)
-		ObjCache.flush_multi(is_category = True)
 
 	def put(self):
 		db.Model.put(self)
@@ -497,7 +494,7 @@ class Entry(BaseModel):
 		self.tags=tags
 
 	def comments(self):
-		@object_cache(key_prefix='entry.comments',is_comment=True, comment_type='ALL',is_aggregation=True)
+		@object_cache(key_prefix='entry.comments',comment_type='ALL',is_aggregation=True)
 		def _comments():
 			if g_blog.comments_order:
 				return [comment for comment in Comment.all().filter('entry =',self).order('-date').fetch(limit=1000)]
@@ -506,15 +503,14 @@ class Entry(BaseModel):
 		return _comments(cache_entry_id=self.post_id, cache_key=str(self.post_id))
 
 	def get_comments_by_page(self,index,psize):
-		@object_cache(key_prefix='entry.get_comments_by_page', is_comment=True,comment_type='ALL', is_pager=True)
+		@object_cache(key_prefix='entry.get_comments_by_page', comment_type='ALL', is_pager=True)
 		def _get_comments_by_page(index,psize):
 			all_comments = self.comments()
 			return all_comments[(index-1)*psize:index*psize]
 
 		return _get_comments_by_page(index,psize,
 		                                  cache_key=str(self.post_id)+'_'+str(index)+'_'+str(psize),
-		                                  cache_entry_id = self.post_id,
-		                                  cache_pager_id = index
+		                                  cache_entry_id = self.post_id
 		                                  )
 
 	@property
@@ -526,7 +522,7 @@ class Entry(BaseModel):
 		return '/admin/%s?key=%s&action=edit'%(self.entrytype,self.key())
 
 	def purecomments(self):
-		@object_cache(key_prefix='entry.purecomments',is_comment=True, comment_type='NORMAL', is_aggregation=True)
+		@object_cache(key_prefix='entry.purecomments',comment_type='NORMAL', is_aggregation=True)
 		def _purecomments():
 			if g_blog.comments_order:
 				return [comment for comment in Comment.all().filter('entry =',self).filter('ctype =',0).order('-date').fetch(limit=1000)]
@@ -539,7 +535,6 @@ class Entry(BaseModel):
 			query = self.purecomments(),
 			cache_key = 'purecomments_count_'+str(self.post_id),
 			cache_entry_id=self.post_id,
-		    cache_is_comment=True,
 			cache_comment_type='NORMAL')
 
 	def trackcomments(self):
@@ -559,7 +554,8 @@ class Entry(BaseModel):
 		self.commentcount = 0
 		self.trackbackcount = 0
 
-		ObjCache.flush_multi(is_comment=True,entry_id=self.post_id)
+		ObjCache.flush_multi(comment_type='ALL',entry_id=self.post_id)
+		ObjCache.flush_multi(comment_type='NORMAL',entry_id=self.post_id)
 		ObjCache.update_basic_info(update_comments=True)
 		ObjCache.flush_multi(is_htmlpage=True,entry_id=self.post_id)
 
@@ -570,7 +566,8 @@ class Entry(BaseModel):
 			comment.no=i
 			i+=1
 			comment.store()
-		ObjCache.flush_multi(is_comment=True,entry_id=self.post_id)#it's better to flush the cached comments as well
+		ObjCache.flush_multi(comment_type='ALL',entry_id=self.post_id)#it's better to flush the cached comments as well
+		ObjCache.flush_multi(comment_type='NORMAL',entry_id=self.post_id)
 
 	def update_archive(self,cnt=1):
 		"""Checks to see if there is a month-year entry for the
@@ -591,7 +588,6 @@ class Entry(BaseModel):
 				archive.put()
 			try:
 				ObjCache.update_basic_info(update_archives=True)
-				ObjCache.flush_multi(is_archive=True)
 			except Exception,e:
 				logging.error(e.message)
 		g_blog.entrycount+=cnt
@@ -652,14 +648,10 @@ class Entry(BaseModel):
 		self.put()
 
 		if self.entrytype=='PAGE':
-			ObjCache.flush_multi(entry_type='PAGE')
 			ObjCache.flush_multi(is_htmlpage=True)
 		else:
-			ObjCache.flush_multi(entry_type='POST', entry_id=self.post_id)
+			ObjCache.flush_multi(is_htmlpage=True, entry_id=self.post_id)
 			ObjCache.flush_multi(is_htmlpage=True, is_aggregation=True)
-			ObjCache.flush_multi(is_recentposts=True)
-			ObjCache.flush_multi(is_relativePosts=True)
-			ObjCache.flush_multi(is_archive=True)
 			ObjCache.update_basic_info(update_pages=True)
 
 		g_blog.tigger_action("save_post",self,is_publish)
@@ -681,7 +673,7 @@ class Entry(BaseModel):
 
 	@property
 	def relateposts(self):
-		@object_cache(key_prefix='entry.relateposts', is_relativePosts=True, entry_type='POST')
+		@object_memcache(key_prefix='entry.relateposts', time=0)#time=0 means cache as long as possible
 		def _relateposts():
 			if  self._relatepost:
 				return self._relatepost
@@ -722,14 +714,10 @@ class Entry(BaseModel):
 		self.delete_comments()
 		db.Model.delete(self)
 		if self.entrytype=='PAGE':
-			ObjCache.flush_multi(entry_type='PAGE')
 			ObjCache.flush_multi(is_htmlpage=True)
-		else:
-			ObjCache.flush_multi(entry_type='POST', entry_id=self.post_id)
+		else:#TODO Check
+			ObjCache.flush_multi(is_htmlpage=True, entry_id=self.post_id)
 			ObjCache.flush_multi(is_htmlpage=True, is_aggregation=True)
-			ObjCache.flush_multi(is_recentposts=True)
-			ObjCache.flush_multi(is_relativePosts=True)
-			ObjCache.flush_multi(is_archive=True)
 			ObjCache.update_basic_info(update_pages=True)
 
 		g_blog.tigger_action("delete_post",self)
@@ -820,12 +808,12 @@ class Comment(db.Model):
 		self.entry.put()
 
 		#update cache
-		comment_count = ObjCache.get(is_comment=True,comment_type='ALL',is_count=True,entry_id=self.entry.post_id)
+		comment_count = ObjCache.get(comment_type='ALL',is_count=True,entry_id=self.entry.post_id)
 		if comment_count is not None:
 			count = ObjCache.get_cache_value(comment_count.cache_key)
 			comment_count.update(count+1)
 
-		comments_obj = ObjCache.get(is_comment=True,comment_type='ALL',is_aggregation=True,entry_id=self.entry.post_id)
+		comments_obj = ObjCache.get(comment_type='ALL',is_aggregation=True,entry_id=self.entry.post_id)
 		if comments_obj:
 			comments_val = ObjCache.get_cache_value(comments_obj.cache_key)
 			if g_blog.comments_order:#递减
@@ -835,12 +823,12 @@ class Comment(db.Model):
 			comments_obj.update(comments_val)
 		#update entry.purecomments()
 		if self.ctype == COMMENT_NORMAL:
-			comment_count=ObjCache.get(is_comment=True,comment_type='NORMAL',is_count=True,entry_id=self.entry.post_id)
+			comment_count=ObjCache.get(comment_type='NORMAL',is_count=True,entry_id=self.entry.post_id)
 			if comment_count is not None:
 				count = ObjCache.get_cache_value(comment_count.cache_key)
 				comment_count.update(count+1)
 
-			comments_obj = ObjCache.get(is_comment=True,comment_type='NORMAL',is_aggregation=True,entry_id=self.entry.post_id)
+			comments_obj = ObjCache.get(comment_type='NORMAL',is_aggregation=True,entry_id=self.entry.post_id)
 			if comments_obj:
 				comments_val = ObjCache.get_cache_value(comments_obj.cache_key)
 				if g_blog.comments_order:#递减
@@ -849,7 +837,8 @@ class Comment(db.Model):
 					comments_val.append(self)
 				comments_obj.update(comments_val)
 
-		ObjCache.flush_multi(is_comment=True,is_pager=True, entry_id=self.entry.post_id)
+		ObjCache.flush_multi(comment_type='ALL',is_pager=True, entry_id=self.entry.post_id)
+		ObjCache.flush_multi(comment_type='NORMAL',is_pager=True, entry_id=self.entry.post_id)
 		#no need to invalidate all pages, home page is enough for most people
 		ObjCache.flush_multi(is_htmlpage=True,is_aggregation=True)
 		ObjCache.flush_multi(is_htmlpage=True,entry_id=self.entry.post_id)
@@ -869,30 +858,31 @@ class Comment(db.Model):
 		self.delete()
 
 		#update cache
-		comment_count = ObjCache.get(is_comment=True,comment_type='ALL',is_count=True,entry_id=self.entry.post_id)
+		comment_count = ObjCache.get(comment_type='ALL',is_count=True,entry_id=self.entry.post_id)
 		if comment_count is not None:
 			count = ObjCache.get_cache_value(comment_count.cache_key)
 			comment_count.update(count-1)
 
-		comments_obj = ObjCache.get(is_comment=True,comment_type='ALL',is_aggregation=True,entry_id=self.entry.post_id)
+		comments_obj = ObjCache.get(comment_type='ALL',is_aggregation=True,entry_id=self.entry.post_id)
 		if comments_obj:
 			comments_val = ObjCache.get_cache_value(comments_obj.cache_key)
 			comments_val.remove(self)
 			comments_obj.update(comments_val)
 		#update entry.purecomments()
 		if self.ctype == COMMENT_NORMAL:
-			comment_count = ObjCache.get(is_comment=True,comment_type='NORMAL',is_count=True,entry_id=self.entry.post_id)
+			comment_count = ObjCache.get(comment_type='NORMAL',is_count=True,entry_id=self.entry.post_id)
 			if comment_count is not None:
 				count = ObjCache.get_cache_value(comment_count.cache_key)
 				comment_count.update(count-1)
 
-			comments_obj = ObjCache.get(is_comment=True,comment_type='NORMAL',is_aggregation=True,entry_id=self.entry.post_id)
+			comments_obj = ObjCache.get(comment_type='NORMAL',is_aggregation=True,entry_id=self.entry.post_id)
 			if comments_obj:
 				comments_val = ObjCache.get_cache_value(comments_obj.cache_key)
 				comments_val.remove(self)
 				comments_obj.update(comments_val)
 
-		ObjCache.flush_multi(is_comment=True,is_pager=True, entry_id=self.entry.post_id)
+		ObjCache.flush_multi(comment_type='ALL',is_pager=True, entry_id=self.entry.post_id)
+		ObjCache.flush_multi(comment_type='NORMAL',is_pager=True, entry_id=self.entry.post_id)
 		#no need to invalidate all pages, home page is enough for most people
 		ObjCache.flush_multi(is_htmlpage=True,is_aggregation=True)
 		ObjCache.flush_multi(is_htmlpage=True,entry_id=self.entry.post_id)
@@ -907,7 +897,8 @@ class Comment(db.Model):
 	#seems no need to update cache in this function
 	def delete(self):
 		db.Model.delete(self)
-		ObjCache.flush_multi(is_comment=True, entry_id=self.entry.post_id)
+		ObjCache.flush_multi(comment_type='ALL', entry_id=self.entry.post_id)
+		ObjCache.flush_multi(comment_type='NORMAL', entry_id=self.entry.post_id)
 		g_blog.tigger_action("delete_comment",self)
 
 	#seems nowhere uses

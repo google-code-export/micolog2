@@ -580,14 +580,10 @@ class admin_entries(BaseRequestHandler):
 
 				entry=Entry.get_by_id(kid)
 				if entry.entrytype=='PAGE':
-					ObjCache.flush_multi(entry_type='PAGE')
 					ObjCache.flush_multi(is_htmlpage=True)
 				else:
-					ObjCache.flush_multi(entry_type='POST', entry_id=entry.post_id)
+					ObjCache.flush_multi(is_htmlpage=True, entry_id=entry.post_id)
 					ObjCache.flush_multi(is_htmlpage=True, is_aggregation=True)
-					ObjCache.flush_multi(is_recentposts=True)
-					ObjCache.flush_multi(is_relativePosts=True)
-					ObjCache.flush_multi(is_archive=True)
 				entry.delete()
 				g_blog.entrycount-=1
 		finally:
@@ -622,7 +618,6 @@ class admin_categories(BaseRequestHandler):
 				cat=Category.get(key)
 				if cat:
 					cat.delete()
-					ObjCache.flush_multi(category=cat.name)
 		finally:
 			self.redirect('/admin/categories')
 
@@ -686,7 +681,6 @@ class admin_links(BaseRequestHandler):
 			kid=int(link_id)
 			link=Link.get_by_id(kid)
 			link.delete()
-		ObjCache.flush_multi(is_link=True)
 		ObjCache.update_basic_info(update_links=True)
 		self.redirect('/admin/links')
 
@@ -740,7 +734,6 @@ class admin_link(BaseRequestHandler):
 					vals.update({'result':False,'msg':_('Error:Link can''t been saved.')})
 					self.render2('views/admin/link.html',vals)
 					
-		ObjCache.flush_multi(is_link=True)
 		ObjCache.update_basic_info(update_links=True)
 
 class admin_category(BaseRequestHandler):
@@ -780,7 +773,6 @@ class admin_category(BaseRequestHandler):
 		key=self.param('key')
 		
 		ObjCache.flush_multi(is_htmlpage=True)
-		ObjCache.flush_multi(is_category=True)
 
 		vals={'action':action,'postback':True}
 

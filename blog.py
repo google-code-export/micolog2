@@ -92,8 +92,7 @@ class BasePublicPage(BaseRequestHandler):
 				ret+='<li class="%s"><a href="/%s" target="%s">%s</a></li>'%( current,page.link, page.target,page.title)
 		return ret
 
-	#设定htmlpage为True，因为忘记其他地方在刷新页面的时候是不是只看这一个条件了=_=
-	@object_cache(key_prefix='sticky_entries',entry_type='POST', is_sticky=True, is_htmlpage=True)
+	#似乎没有地方在使用这个函数
 	def sticky_entrys(self):
 		return Entry.all().filter('entrytype =','post')\
 			.filter('published =',True)\
@@ -150,18 +149,18 @@ class MainPage(BasePublicPage):
 							})
 
 def _get_category_post_count(category_key):
-	query = Entry.all().filter("published =", True).filter('categorie_keys =',category_key)
-	return get_query_count(query,
-	                       cache_key='category_post_count_'+str(category_key),
-	                       cache_is_category = True,
-	                       cache_entry_type = 'POST'
-	                       )
+	@object_memcache(key_prefix='category_post_count',time=3600*24)
+	def __get_category_post_count(category_key)
+		return Entry.all().filter("published =", True).filter('categorie_keys =',category_key).count()
+	return __get_category_post_count(category_key,
+	                       cache_key=''+str(category_key))
 
 #the whole page is cached, so no need to cache this function
 def _get_entries_by_category(categories_keys, offset, fetch_n):
 	return Entry.all().filter("published =", True).filter('categorie_keys =',categories_keys).order("-date").fetch(fetch_n,offset)
 
 class entriesByCategory(BasePublicPage):
+	@request_memcache(key_prefix='entries_by_category',time=3600*24)
 	def get(self,slug):
 		if not slug:
 			self.error(404)
@@ -169,41 +168,25 @@ class entriesByCategory(BasePublicPage):
 		slug=urldecode(slug)
 		cats=Category.all().filter('slug =',slug).fetch(1)
 		if cats:
-			return self._get(cats,
-			                cache_is_aggregation=True,
-		                    cache_entry_type = 'POST',
-		                    cache_is_category=True,
-			                cache_category = cats[0].name
-		                    )
+			try:
+				page_index=int(self.param('page'))
+			except:
+				page_index=1
+
+			cat_key = cats[0].key()
+			entries=_get_entries_by_category(cat_key,(page_index-1)*20,20)
+			max_offset = _get_category_post_count(cat_key)
+			n = max_offset/20
+			links = {'count':max_offset,'page_index':page_index,'prev': page_index - 1, 'next': page_index + 1, 'last': n}
+			if links['next'] > n:
+				links['next'] = 0
+			self.render('category',{'entries':entries,'category':cats[0],'pager':links})
 		else:
 			self.error(414,slug)
 
-	@request_cache(key_prefix='category')
-	def _get(self,cats):
-		try:
-			page_index=int(self.param('page'))
-		except:
-			page_index=1
-
-		cat_key = cats[0].key()
-		entries=_get_entries_by_category(cat_key,(page_index-1)*20,20)
-		max_offset = _get_category_post_count(cat_key)
-		n = max_offset/20
-		links = {'count':max_offset,'page_index':page_index,'prev': page_index - 1, 'next': page_index + 1, 'last': n}
-		if links['next'] > n:
-			links['next'] = 0
-		self.render('category',{'entries':entries,'category':cats[0],'pager':links})
-
 class archive_by_month(BasePublicPage):
+	@request_memcache(key_prefix='archive',time=3600*24*3)
 	def get(self,year,month):
-		return self._get(year,month,
-		                 is_aggregation=True,
-		                 cache_entry_type='POST',
-		                 cache_is_archive=True
-		                 )
-
-	@request_cache(key_prefix='archive')
-	def _get(self,year,month):
 		try:
 			page_index=int (self.param('page'))
 		except:
@@ -215,27 +198,17 @@ class archive_by_month(BasePublicPage):
 		else:
 			lastday=datetime(int(year)+1,1,1)
 		entries=db.GqlQuery("SELECT * FROM Entry WHERE date > :1 AND date <:2 AND entrytype =:3 AND published = True ORDER BY date DESC",firstday,lastday,'post')
-		entry_count = get_query_count(entries,
-		                              cache_key='archive_'+str(year)+'_'+str(month),
-		                              cache_is_archive=True)
+		entry_count = entries.count();
 		entries,links=Pager(query_len=entry_count, query=entries).fetch(
 			page_index,
 		    cache_key = 'archive_'+str(year)+'_'+str(month),
-		    cache_is_archive=True,
+		    cache_control='no_cache'
 		    )
 		self.render('month',{'entries':entries,'year':year,'month':month,'pager':links})
 
 class entriesByTag(BasePublicPage):
+	@request_memcache(key_prefix='tag',time=3600*24)
 	def get(self,slug):
-		return self._get(slug,
-		                 cache_is_aggregation=True,
-		                 cache_entry_type = 'POST',
-		                 cache_is_tag = True,
-		                 cache_tag = slug
-		)
-
-	@request_cache(key_prefix='tag')
-	def _get(self,slug):
 		if not slug:
 				 self.error(404)
 				 return
@@ -274,7 +247,6 @@ class SinglePost(BasePublicPage):
 		
 		return self._get(
 			entry,
-			cache_entry_type = 'POST',
 		    cache_entry_id = entry.post_id,
 		)
 

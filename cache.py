@@ -13,36 +13,15 @@ from datetime import datetime
 class ObjCache(db.Model):
 	cache_key = db.StringProperty()
 	value = db.BlobProperty()
-	#the following fields are used at cache auto invalidation
-	#一些Tag,用来标明该Obj的身份
-	#因为查询的时候跟index域很相关，为了减少GAE统计的操作次数，这些标记全部放到StringList里面
+	datetime = db.DateTimeProperty(auto_now=True)
 	tags = db.StringListProperty()
-
-#	is_htmlpage = db.BooleanProperty(default=False) #即request所缓存的那种
-#	is_recentposts = db.BooleanProperty(default=False)
-#	entry_type = db.StringProperty(default='') #'POST', 'PAGE
-#	is_sticky = db.BooleanProperty(default=False)
-#
-#	is_comment = db.BooleanProperty(default=False)
+#	is_htmlpage = db.BooleanProperty(default=False) #即request所缓存的那种 TODO:invalidate some cache when posting an article
 #	comment_type = db.StringProperty(default='') #'ALL','NORMAL'
-#
 #	is_basicinfo = db.BooleanProperty(default=False)
-#
-#	is_relativePosts = db.BooleanProperty(default=False)
-#
-#	is_link = db.BooleanProperty(default=False)
-#	is_tag = db.BooleanProperty(default=False)
-#	is_category = db.BooleanProperty(default=False)
-#	is_archive = db.BooleanProperty(default=False)
-#
 #	is_count = db.BooleanProperty(default=False)
 #	is_aggregation = db.BooleanProperty(default=False)
 #	is_pager = db.BooleanProperty(default=False)
-#
-#	category = db.StringProperty(default='')
 #	entry_id = db.IntegerProperty(default=-1)#post_id
-#	pager_id = db.IntegerProperty(default=-1)
-#	tag = db.StringProperty(default='')
 
 	def invalidate(self):
 		logging.debug('ObjCache invalidate called: ' + self.cache_key)
@@ -105,51 +84,25 @@ class ObjCache(db.Model):
 			basic_info.update(info)
 
 	@staticmethod
-	def create(key, value_obj, is_htmlpage=None,is_recentposts=None,entry_type=None,is_sticky=None,is_comment=None,
-	             comment_type=None,is_basicinfo=None,is_relativePosts=None,is_link=None,is_tag=None,is_category=None,
-	             is_archive=None,is_count=None,is_aggregation=None,is_pager=None,category=None,entry_id=None,pager_id=None,tag=None,
-	             ):
+	def create(key, value_obj, is_htmlpage=None,comment_type=None,is_basicinfo=None,
+	           is_count=None,is_aggregation=None,is_pager=None,entry_id=None):
 		try:
 			memcache.set(key,value_obj)
 			l = []
 			if is_htmlpage is not None:
 				l.append(u'is_htmlpage='+unicode(is_htmlpage))
-			if is_recentposts is not None:
-				l.append(u'is_recentposts='+unicode(is_recentposts))
-			if entry_type is not None:
-				l.append(u'entry_type='+unicode(entry_type))
-			if is_sticky is not None:
-				l.append(u'is_sticky='+unicode(is_sticky))
-			if is_comment is not None:
-				l.append(u'is_comment='+unicode(is_comment))
 			if comment_type is not None:
 				l.append(u'comment_type='+unicode(comment_type))
 			if is_basicinfo is not None:
 				l.append(u'is_basicinfo='+unicode(is_basicinfo))
-			if is_relativePosts is not None:
-				l.append(u'is_relativePosts='+unicode(is_relativePosts))
-			if is_link is not None:
-				l.append(u'is_link='+unicode(is_link))
-			if is_tag is not None:
-				l.append(u'is_tag='+unicode(is_tag))
-			if is_category is not None:
-				l.append(u'is_category='+unicode(is_category))
-			if is_archive is not None:
-				l.append(u'is_archive='+unicode(is_archive))
 			if is_count is not None:
 				l.append(u'is_count='+unicode(is_count))
 			if is_aggregation is not None:
 				l.append(u'is_aggregation='+unicode(is_aggregation))
 			if is_pager is not None:
 				l.append(u'is_pager='+unicode(is_pager))
-			if category is not None:
-				l.append(u'category='+unicode(category))
 			if entry_id is not None:
 				l.append(u'entry_id='+unicode(entry_id))
-			if pager_id is not None:
-				l.append(u'pager_id='+unicode(pager_id))
-			if tag is not None:
-				l.append(u'tag='+unicode(tag))
 
 			#logging.debug('kwargs: '+str(kwargs))
 			ObjCache(cache_key=key,value=pickle.dumps(value_obj), tags=l).put()
@@ -363,6 +316,65 @@ def request_cache(key_prefix='',
 			status_code = response._Response__status[0]
 			html = (result,response.last_modified,status_code,response.headers)
 			ObjCache.create(key,html,**cache_args)
+			return
+
+		return _wrapper
+	return _decorate
+
+def request_memcache(key_prefix='',time = 3600,
+                  key_parameter_name='cache_key',
+                  cache_control_parameter_name='cache_control'):
+	'''
+	available options for cache control are: no_cache, cache
+	default option is cache
+	'''
+	def _decorate(method):
+		def _wrapper(*args, **kwargs):
+			request=args[0].request
+			response=args[0].response
+
+			key = 'request_'+key_prefix+'_'+request.path_qs
+			if key_parameter_name in kwargs:
+				key = key+'_'+kwargs[key_parameter_name]
+				del kwargs[key_parameter_name]
+
+			cache_control = 'cache'
+			if cache_control_parameter_name in kwargs:
+				cache_control = kwargs[cache_control_parameter_name]
+				del kwargs[cache_control_parameter_name]
+
+			if cache_control == 'no_cache':
+				logging.debug('request_cache: no_cache for '+key)
+				if 'last-modified' not in response.headers:
+					response.last_modified = format_date(datetime.utcnow())
+				method(*args, **kwargs)
+				return
+
+			html= ObjCache.get_cache_value(key)
+			if html:
+				logging.debug('request_cache: found cache for '+key)
+				try:
+					response.last_modified =html[1]
+					_len=len(html)
+					if _len>=3:
+						response.set_status(html[2])
+					if _len>=4:
+						for h_key,value in html[3].items():
+							response.headers[h_key]=value
+					response.out.write(html[0])
+					return
+				except Exception,e:
+					logging.error(e.message)
+
+			logging.debug('request_cache: not found cache for '+key)
+			if 'last-modified' not in response.headers:
+				response.last_modified = format_date(datetime.utcnow())
+
+			method(*args, **kwargs)
+			result=response.out.getvalue()
+			status_code = response._Response__status[0]
+			html = (result,response.last_modified,status_code,response.headers)
+			memcache.set(key,html,time)
 			return
 
 		return _wrapper
