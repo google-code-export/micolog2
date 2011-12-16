@@ -217,11 +217,11 @@ class archive_by_month(BasePublicPage):
 		entries=db.GqlQuery("SELECT * FROM Entry WHERE date > :1 AND date <:2 AND entrytype =:3 AND published = True ORDER BY date DESC",firstday,lastday,'post')
 		entry_count = get_query_count(entries,
 		                              cache_key='archive_'+str(year)+'_'+str(month),
-		                              cache_depend_url=CacheUrlFormatter.gen_homepage())
+		                              cache_url=CacheUrlFormatter.gen_homepage())
 		entries,links=Pager(query_len=entry_count, query=entries).fetch(
 			page_index,
 		    cache_key = 'archive_'+str(year)+'_'+str(month),
-		    cache_depend_url=CacheUrlFormatter.gen_homepage(),
+		    cache_url=CacheUrlFormatter.gen_homepage(),
 		    )
 		self.render('month',{'entries':entries,'year':year,'month':month,'pager':links})
 
@@ -250,7 +250,7 @@ class entriesByTag(BasePublicPage):
 		entries=Entry.all().filter("published =", True).filter('tags =',slug).order("-date")
 		entry_count = get_query_count(entries,
 		                              cache_key='tag_'+slug,
-		                              cache_depend_url=CacheUrlFormatter.gen_homepage())
+		                              cache_url=CacheUrlFormatter.gen_homepage())
 		entries,links=Pager(query_len=entry_count, query=entries, items_per_page=20).fetch(
 			page_index,
 		    cache_control='no_cache'
