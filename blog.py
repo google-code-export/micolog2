@@ -150,10 +150,10 @@ class MainPage(BasePublicPage):
 
 def _get_category_post_count(category_key):
 	@object_memcache(key_prefix='category_post_count',time=3600*24)
-	def __get_category_post_count(category_key)
+	def __get_category_post_count(category_key):
 		return Entry.all().filter("published =", True).filter('categorie_keys =',category_key).count()
 	return __get_category_post_count(category_key,
-	                       cache_key=''+str(category_key))
+	                       cache_key=str(category_key))
 
 #the whole page is cached, so no need to cache this function
 def _get_entries_by_category(categories_keys, offset, fetch_n):
@@ -223,7 +223,7 @@ class entriesByTag(BasePublicPage):
 		entries=Entry.all().filter("published =", True).filter('tags =',slug).order("-date")
 		entry_count = get_query_count(entries,
 		                              cache_key='tag_'+slug,
-		                              is_aggregation=True)
+		                              cache_control='no_cache')
 		entries,links=Pager(query_len=entry_count, query=entries, items_per_page=20).fetch(
 			page_index,
 		    cache_control='no_cache'
@@ -436,7 +436,7 @@ class FeedHandler(BaseRequestHandler):
 		self.render2('views/rss.xml',{'entries':entries,'last_updated':last_updated})
 
 class CommentsFeedHandler(BaseRequestHandler):
-	#TODO: see if this url is frequently used. If so, consider cache it
+	@request_memcache(key_prefix='commentsfeedhandler',time=3600*24)
 	def get(self,tags=None):
 		comments = Comment.all().order('-date').filter('ctype =',0).fetch(10)
 		last_updated = ''

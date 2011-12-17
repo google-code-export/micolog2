@@ -695,7 +695,7 @@ class Entry(BaseModel):
 				else:
 					self._relatepost= []
 				return self._relatepost
-		return _relateposts(cache_key=str(self.post_id),cache_entry_id=self.post_id)
+		return _relateposts(cache_key=str(self.post_id))
 
 	@property
 	def trackbackurl(self):
