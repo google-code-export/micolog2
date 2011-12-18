@@ -22,6 +22,7 @@ class ObjCache(db.Model):
 #	is_aggregation = db.BooleanProperty(default=False)
 #	is_pager = db.BooleanProperty(default=False)
 #	entry_id = db.IntegerProperty(default=-1)#post_id
+#   is_hotposts
 
 	def invalidate(self):
 		logging.debug('ObjCache invalidate called: ' + self.cache_key)
@@ -85,7 +86,7 @@ class ObjCache(db.Model):
 
 	@staticmethod
 	def create(key, value_obj, is_htmlpage=None,comment_type=None,is_basicinfo=None,
-	           is_count=None,is_aggregation=None,is_pager=None,entry_id=None):
+	           is_count=None,is_aggregation=None,is_pager=None,entry_id=None,is_hotposts=None):
 		try:
 			memcache.set(key,value_obj)
 			l = []
@@ -103,6 +104,8 @@ class ObjCache(db.Model):
 				l.append(u'is_pager='+unicode(is_pager))
 			if entry_id is not None:
 				l.append(u'entry_id='+unicode(entry_id))
+			if is_hotposts is not None:
+				l.append(u'is_hotposts='+unicode(is_hotposts))
 
 			#logging.debug('kwargs: '+str(kwargs))
 			ObjCache(cache_key=key,value=pickle.dumps(value_obj), tags=l).put()

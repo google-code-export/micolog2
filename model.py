@@ -221,7 +221,7 @@ class Blog(db.Model):
 	def rootpath(self):
 		return rootpath
 
-	@object_memcache(key_prefix='hotposts',time=3600)
+	@object_cache(key_prefix='hotposts',is_hotposts=True)
 	def hotposts(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-readtimes').fetch(8)
 
@@ -653,6 +653,7 @@ class Entry(BaseModel):
 			ObjCache.flush_multi(is_htmlpage=True, entry_id=self.post_id)
 			ObjCache.flush_multi(is_htmlpage=True, is_aggregation=True)
 			ObjCache.update_basic_info(update_pages=True)
+			ObjCache.flush_multi(is_hotposts=True)
 
 		g_blog.tigger_action("save_post",self,is_publish)
 
