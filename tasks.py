@@ -10,7 +10,8 @@ from cache import ObjCache
 
 class CleanCache(webapp.RequestHandler):
     def get(self):
-        #is there any cache should we flush?
+        #is there any cache should we flush daily?
+        #TODO: can perform a flush according to the timestamp of the ObjCache
         logging.debug('TASK: Clean Cache finished')
 
 application = webapp.WSGIApplication(
