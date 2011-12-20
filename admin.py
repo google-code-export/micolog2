@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-import cgi, os,sys,traceback,logging
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+from google.appengine.dist import use_library
+use_library('django', '0.96')
+
+from django.utils.translation import ugettext as _
+import cgi,sys,traceback,logging
+
 import wsgiref.handlers
 ##os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 ##from django.conf import settings

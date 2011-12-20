@@ -47,7 +47,7 @@ import os,logging
 
 try:
   from django import v0_96
-except ImportError:
+except:
   pass
 import django
 

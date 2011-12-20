@@ -4,6 +4,13 @@
 #Originally taken from Micolog
 #Modified by Rex to reduce data store operations
 ##################################################
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+from google.appengine.dist import use_library
+use_library('django', '0.96')
+
+from django.utils.translation import ugettext as _
+
 import cgi, os,sys,math
 import wsgiref.handlers
 import  google.appengine.api
