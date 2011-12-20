@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %} {{entry.title}} - {{blog.title}} {% endblock %}
+
+{% block head_block %}
+
+{% if entry %}
+{%if entry.strtags%}<meta name="Keywords" content="{{entry.strtags}}" />{%endif%}
+{% endif %}
+
+<script type="text/javascript" src="/themes/{{ blog.theme_name }}/comment.js"></script>
+<script type="text/javascript" src="/static/js/jquery.form.utf8.js"></script>
+
+{% endblock %}
+
+{% block content %}
+
+<div id="left-content-single">
+{% if entry %}
+<div class="post-home">
+<div class="post-title-single"><h1>{{ entry.title }}</h1></div>
+
+<div class="post-content">{%mf entry_content %}{{ entry.content }}{%endmf%}</div>
+
+{%mf after_entry_content%}
+
+<div class="post-messages">
+	<div class="post-messages-1">{{ entry.date|datetz:"Y.m.d" }}</div>
+	<div class="post-messages-2">Tags:{% if entry.tags%}{%for tag in entry.tags%} <a href="/tag/{{tag|urlencode}}">{{tag}}</a> {%endfor%}{%endif%}</div>
+	<div class="post-messages-2">Category:{%for cate in entry.categories%} <a href="/category/{{cate.slug}}">{{cate.name}}</a> {%endfor%}</div><span class="more-link">{%if self.is_admin%} <a href="{{entry.edit_url}}">Edit</a> {%endif%}</span>
+</div>
+
+{%endmf%}
+</div>
+
+<div class="navigation clearfix">
+	<div class="alignleft">{%for prev in entry.prev%}<a href="/{{prev.link}}">«{{prev.title}}</a>{%endfor%}</div>
+	<div class="alignright">{%for next in entry.next%}<a href="/{{next.link}}">{{next.title}}»</a>{%endfor%}</div>
+</div>
+
+{%if relateposts%}
+<div id="post-title-page">
+	<h5><span>相关阅读</span></h5>
+	<ul class="cate">
+	{%for post in relateposts%}
+	<!--<li><a href="/{{post.link}}">{{post.title}}</a></li>-->
+	<li><a href="/{{post.link}}">{{post.title}}</a></li>
+	{%endfor%}
+	</ul>
+</div>
+{%endif%}
+
+{% else %}
+<p>Sorry, no posts matched your criteria.</p>
+{% endif %}
+
+<div id="comments">
+{% include "comments.html" %}
+</div>
+</div>
+
+{% include "sidebar.html" %}
+
+{% endblock %}

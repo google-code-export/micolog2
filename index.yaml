@@ -40,6 +40,19 @@ indexes:
   - name: entrytype
   - name: published
   - name: date
+
+- kind: Entry
+  properties:
+  - name: entrytype
+  - name: published
+  - name: date
+    direction: desc
+
+- kind: Entry
+  properties:
+  - name: entrytype
+  - name: published
+  - name: readtimes
     direction: desc
 
 - kind: Entry

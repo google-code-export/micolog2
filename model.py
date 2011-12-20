@@ -494,6 +494,12 @@ class Entry(BaseModel):
 		self.tags=tags
 
 	def comments(self):
+		if g_blog.comments_order:
+			return Comment.all().filter('entry =',self).order('-date')
+		else:
+			return Comment.all().filter('entry =',self).order('date')
+
+	def comments_l(self):
 		@object_cache(key_prefix='entry.comments',comment_type='ALL',is_aggregation=True)
 		def _comments():
 			if g_blog.comments_order:
@@ -505,7 +511,7 @@ class Entry(BaseModel):
 	def get_comments_by_page(self,index,psize):
 		@object_cache(key_prefix='entry.get_comments_by_page', comment_type='ALL', is_pager=True)
 		def _get_comments_by_page(index,psize):
-			all_comments = self.comments()
+			all_comments = self.comments_l()
 			return all_comments[(index-1)*psize:index*psize]
 
 		return _get_comments_by_page(index,psize,

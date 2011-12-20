@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %} {{entry.title}} - {{blog.title}} {% endblock %}
+
+{% block head_block %}
+
+{%if entry.strtags%}<meta name="Keywords" content="{{entry.strtags}}">{%endif%}
+
+<script type="text/javascript" src="/themes/{{ blog.theme_name }}/comment.js"></script>
+<script src="/static/js/jquery.form.utf8.js"></script>
+
+{% endblock %}
+
+{% block content %}
+
+{% if entry %}
+
+<div id="left-content-single">
+
+<div id="post-home">
+<div id="post-title-page"><h1><span>{{ entry.title }}</span></h1></div>
+<div id="post-content" style="border: 1px solid #ccf;padding:10px;;margin-bottom:1.5em;">{{ entry.content }}</div>
+</div>
+
+<div id="comments">
+	{% include "comments.html" %}
+</div>
+
+</div>
+
+{% else %}
+<p>Sorry, no posts matched your criteria.</p>
+{% endif %}
+
+{% include "sidebar.html" %}
+
+{% endblock %}

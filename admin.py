@@ -125,7 +125,7 @@ class admin_do_action(BaseRequestHandler):
 	@requires_admin
 	def action_updatecomments(self):
 		for entry in Entry.all():
-			cnt=entry.comments().count()
+			cnt=entry.comments_l().count()
 			if cnt<>entry.commentcount:
 				entry.commentcount=cnt
 				entry.put()

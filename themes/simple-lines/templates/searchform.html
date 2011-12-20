@@ -1,0 +1,19 @@
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+<script type="text/javascript">
+  google.load('search', '1');
+  google.setOnLoadCallback(function() {
+    google.search.CustomSearchControl.attachAutoCompletion(
+      '014901026069788417494:a8-bvv2weee',
+      document.getElementById('s'),
+      'cse-search-box');
+  });
+</script>
+<form action="/search" id="searchform">
+  <div>
+    <input type="hidden" name="cx" value="014901026069788417494:a8-bvv2weee" />
+    <input type="hidden" name="cof" value="FORID:11" />
+    <input type="hidden" name="ie" value="UTF-8" />
+    <input type="text" name="q" id="s" autocomplete="off" size="31" />
+    <input type="submit" name="sa" id="searchsubmit" value="Search" />
+  </div>
+</form>

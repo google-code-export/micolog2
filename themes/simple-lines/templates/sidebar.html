@@ -1,0 +1,50 @@
+﻿<div id="sidebar">
+	<div class="widget_recent_entries">
+		<h3><span>Welcome</span></h3>
+		<ul>{{blog.blognotice}}</ul>
+	</div>
+	<div class="widget_recent_entries">
+		<h3><span>Hot Posts</span></h3>
+		<ul>
+        {% for entry in blog.hotposts %}
+		<li><a href="/{{entry.link|escape}}" title="{{entry.title|escape}}">{{entry.title|escape}}[{{entry.readtimes}}]</a></li>
+        {%endfor%}
+		</ul>
+	</div>
+	<div class="widget_categories">
+		<h3><span>Categories</span></h3>
+		<ul>
+		{%for cate in categories%}
+		<li><a href="/category/{{cate.slug}}">{{cate.name}}[{{cate.count}}]</a></li>
+		{%endfor%}	
+		</ul>
+	</div>
+	<div class="widget_tag_cloud">
+		<h3><span>Tag Cloud</span></h3>
+		<div>
+		{% for t in alltags %}
+		<a title="{{ t.tagcount }} pages" href="/tag/{{t.tag|urlencode}}" style='font-size:{{ t.tagcount|add:9 }}px;'>{{t.tag}}</a>
+		{%endfor%}
+		</div>
+	</div>
+	<div class="widget_archive">
+		<h3><span>Archives</span></h3>
+		<ul>
+		{%for archive in archives%}
+		<li><a href="/{{archive.year}}/{{archive.month}}">{{archive.year}}年{{archive.month}}月[{{archive.entrycount}}]</a></li>
+		{%endfor%}
+		</ul>
+	</div>
+	<div class="widget_links">
+		<h3><span>Links</span></h3>
+		<ul>
+		{%for link in blogroll%}
+		<li><a href="{{link.href}}">{{link.linktext}}</a></li>
+		{%endfor%}
+		</ul>
+	</div>
+</div>
+
+
+
+

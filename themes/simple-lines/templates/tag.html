@@ -1,0 +1,21 @@
+﻿{% extends "base.html" %}
+{% block title %} {{tag}} - {{blog.title|escape}} {% endblock %}
+{% block content %}
+<div id="postlist">
+<div id="post-title-page">
+<h1><span>{{tag}}</span></h1>
+</div>
+
+<ul class="cate">
+	{% for entry in entries %}
+		<li><a href="/{{entry.link|escape}}" rel="bookmark" title="{{entry.title|escape}}"><span>{{ entry.date|datetz:"Y-m-d" }}&nbsp;|&nbsp;Comments: {{entry.commentcount}}</span>《{{entry.title|escape}}》</a></li>
+	{% endfor %}
+</ul>
+	<div class="navigation clearfix">
+		<div class="alignleft">{% if pager.prev %}<a href="?page={{ pager.prev}}" >&laquo;上一页</a>{% endif %}</div>
+		<div class="alignright">{% if pager.next %}<a href="?page={{ pager.next }}" >&raquo;下一页</a>{% endif %}</div>
+	</div>
+</div>
+
+{% include "sidebar.html" %}
+{% endblock %}

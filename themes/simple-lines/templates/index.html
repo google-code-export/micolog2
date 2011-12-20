@@ -1,0 +1,36 @@
+﻿{% extends "base.html" %}
+
+{% block head_block %}
+<meta name="Keywords" content="" />
+<meta name="Description" content="" />
+{% endblock %}
+
+{% block content %}
+<div id="postlist">
+{% for entry in entries %}
+	<div id="post-{{entry.key}}" class="post-home">
+		<div class="post-title"><h2><a href="/{{ entry.link }}" rel="bookmark" title="Permanent Link to {{ entry.title }}">{{ entry.title }}</a></h2></div>
+		<div class="post-content">
+		{{entry|excerpt_more:"(..More)"}}
+		</div>
+		<div class="post-messages">
+		<div class="post-messages-1">{{ entry.date|datetz:"Y.m.d" }}</div>
+		<div class="post-messages-2">Tags:{% if entry.strtags %}{%for tag in entry.tags%} <a href="/tag/{{tag}}">{{tag}}</a> {%endfor%}{%endif%}</div>
+		<div class="post-messages-2">Category:{%for cate in entry.categories%} <a href="/category/{{cate.slug}}">{{cate.name}}</a> {%endfor%}</div>
+		<div class="post-messages-3"><a href="/{{entry.link}}#comments">{{entry.commentcount}} Comments</a></div>
+		</div>
+	</div>
+{% endfor %}
+
+<div class="navigation clearfix">
+	{% if show_prev %}
+	<div class="alignleft"><a href="/page/{{ pageindex|add:"-1" }}">&laquo; 上一页</a></div>
+	{% endif %}
+	{% if show_next %}
+	<div class="alignright"><a href="/page/{{ pageindex|add:"1" }}">下一页 &raquo;</a></div>
+	{% endif %}
+</div>
+</div>
+
+{% include "sidebar.html" %}
+{% endblock %}

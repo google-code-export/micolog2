@@ -9,7 +9,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 from google.appengine.dist import use_library
 use_library('django', '0.96')
 
-import cgi, os,sys,math
+import cgi, sys,math
 import wsgiref.handlers
 import  google.appengine.api
 
@@ -605,7 +605,6 @@ class Post_comment(BaseRequestHandler):
 			comment.no=comment.entry.commentcount+1
 			try:
 				comment.save() #take care of cache
-				memcache.delete("/"+comment.entry.link)
 
 				self.response.headers.add_header( 'Set-Cookie', cookiestr)
 				if useajax:

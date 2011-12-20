@@ -639,7 +639,7 @@ def wp_getComments(blogid,data):
 			postid=int(data['post_id'])
 			post=Entry.get_by_id(postid)
 			if post:
-				comments=post.comments()
+				comments=post.comments_l()
 		else:
 			comments=Comment.all()
 
