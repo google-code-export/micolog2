@@ -1,5 +1,5 @@
-application: micolog2
-version: micolog2-dec-17-2011
+application: lmzhao-blog-test
+version: micolog2-dec-20-2011
 runtime: python
 api_version: 1
 

@@ -4,7 +4,6 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 from google.appengine.dist import use_library
 use_library('django', '0.96')
 
-from django.utils.translation import ugettext as _
 import os,logging
 import pickle
 import re

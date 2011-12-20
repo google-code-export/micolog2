@@ -4,7 +4,6 @@
 #Originally taken from Micolog
 #Modified by Rex to reduce data store operations
 ##################################################
-from django.utils.translation import ugettext as _
 
 import os,logging
 from google.appengine.api import users
