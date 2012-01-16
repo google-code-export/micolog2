@@ -38,6 +38,12 @@ indexes:
 - kind: Entry
   properties:
   - name: entrytype
+  - name: date
+    direction: desc
+
+- kind: Entry
+  properties:
+  - name: entrytype
   - name: published
   - name: date
 
@@ -62,4 +68,11 @@ indexes:
   - name: sticky
     direction: desc
   - name: date
+    direction: desc
+
+- kind: Entry
+  properties:
+  - name: published
+  - name: tags
+  - name: post_id
     direction: desc

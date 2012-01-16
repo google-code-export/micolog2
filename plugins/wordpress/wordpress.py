@@ -39,7 +39,6 @@ class waphandler(BaseRequestHandler):
 		if not self.is_login:
 			self.redirect(users.create_login_url(self.request.uri))
 
-
 		try:
 				#global imt
 				imt=memcache.get("imt")
@@ -98,6 +97,9 @@ class waphandler(BaseRequestHandler):
 								c=Category.get_by_key_name(cat['slug'])
 								if c:
 									entry.categorie_keys.append(c.key())
+
+							if None in _entry['tags']:
+								_entry['tags'].remove(None)
 							entry.settags(','.join(_entry['tags']))
 				##				for tag in _entry['tags']:
 				##					entry.tags.append(tag)
@@ -127,6 +129,8 @@ class waphandler(BaseRequestHandler):
 										except:
 											pass
 										comment.store()
+					except Exception,e:
+						logging.exception('error when importing')
 					finally:
 						queue=taskqueue.Queue("import")
 						queue.add(taskqueue.Task( url="/admin/wp_import"))
