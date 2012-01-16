@@ -134,6 +134,8 @@ class waphandler(BaseRequestHandler):
 					finally:
 						queue=taskqueue.Queue("import")
 						queue.add(taskqueue.Task( url="/admin/wp_import"))
+				else:
+					ObjCache.flush_all()
 		except Exception,e :
 			logging.info("import error: %s"%e.message)
 

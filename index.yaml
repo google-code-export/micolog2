@@ -65,6 +65,13 @@ indexes:
   properties:
   - name: entrytype
   - name: published
+  - name: slug
+  - name: date
+
+- kind: Entry
+  properties:
+  - name: entrytype
+  - name: published
   - name: sticky
     direction: desc
   - name: date
