@@ -221,11 +221,10 @@ class Blog(db.Model):
 	def rootpath(self):
 		return rootpath
 
-	@object_cache(key_prefix='hotposts',is_hotposts=True)
+	#@object_cache(key_prefix='hotposts',is_hotposts=True)
 	def hotposts(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-readtimes').fetch(8)
 
-	@object_cache(key_prefix='recentposts',is_aggregation=True)
 	def recentposts(self):
 		return Entry.all().filter('entrytype =','post').filter("published =", True).order('-date').fetch(8)
 
