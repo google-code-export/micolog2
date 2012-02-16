@@ -653,11 +653,11 @@ class Entry(BaseModel):
 		self.put()
 
 		if self.entrytype=='PAGE':
-			ObjCache.flush_multi(is_htmlpage=True)
+			ObjCache.flush_multi(is_htmlpage=True, is_aggregation=True)
 		else:
 			ObjCache.flush_multi(is_htmlpage=True, entry_id=self.post_id)
 			ObjCache.flush_multi(is_htmlpage=True, is_aggregation=True)
-			ObjCache.update_basic_info(update_pages=True)
+			ObjCache.update_basic_info(update_pages=True,update_archives=True)
 			ObjCache.flush_multi(is_hotposts=True)
 
 		g_blog.tigger_action("save_post",self,is_publish)
