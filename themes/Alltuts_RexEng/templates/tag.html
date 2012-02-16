@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %} {{tag}} - {{blog.title|escape}} {% endblock %}
+{% block content %}
+		<!-- Begin #colLeft -->
+		<div id="colLeft">
+			{% if entries %}				
+		<!-- Begin .postBox -->
+        <div class="top-title"><span>Posts with <strong>“{{tag}}”</strong> tage(s)</span></div>
+				{% for entry in entries %}
+							<!-- Begin .postBox -->
+		<div class="postBox">
+			<div class="postBoxTop"></div>
+			<div class="postBoxMid">
+				<div class="postBoxMidInner first clearfix">
+				<div class="date">{{entry.date|datetz:"M"}}<br /><span class="day">{{entry.date|datetz:"j"}}</span><br />{{entry.date|datetz:"Y"}}</div>
+				<div class="category">{%for cate in entry.categories%}<a href="/category/{{cate.slug}}">{{cate.name}}&nbsp;&nbsp;</a> {%endfor%}</div>
+				<h1><a href="/{{ entry.link|escape }}" rel="bookmark" title="Click to read: {{entry.title}}">{{entry.title}}</a></h1>
+				<div class="postMeta">
+					<a href="/{{entry.link|escape}}" class="more-link">Continue Reading &raquo;</a>
+					<div class="metaRight">
+						<img src="/themes/{{ blog.theme_name }}/images/ico_author.png" alt="Author"/>  author: {{entry.author_name}}&nbsp;&nbsp;&nbsp;
+					<img src="/themes/{{ blog.theme_name }}/images/ico_comments.png" alt="Comments"/> <a href="/{{entry.link|escape}}#comments"> {{entry.commentcount}} Comments</a>
+					</div>
+				</div>
+				</div>
+			</div>
+			<div class="postBoxBottom"></div>
+		</div>		
+		<!-- End .postBox -->
+        {% endfor %}
+	<div class="navigation">
+			{% if pager.prev %}
+			<div class="alignleft"><a href="?page={{ pager.prev}}">&laquo; Previous</a></div>
+			{% endif %}
+			{% if pager.next %}
+			<div class="alignright"><a href="?page={{ pager.next }}">Next &raquo;</a></div>
+			{% endif %}
+		</div>
+		{% else %}
+		<p>Sorry, we can not find any posts.</p>
+			{% endif %}
+		</div>
+		<!-- End #colLeft -->
+		{% include "sidebar.html" %}
+
+{% endblock %}

@@ -1,0 +1,19 @@
+<li id="comment-{{comment.key.id}}" class="comment">
+            <div class="commentleft">
+            <p class="floor">&nbsp;&nbsp;&nbsp;{{ comment.no }} F</p>
+            <img alt='' src='{{comment.gravatar_url}}' class='avatar avatar-38 photo avatar-default' height='38' width='38' />                
+            </div>
+            <div class="commentright clearfix">
+                <p class="header" > 
+                    {%if comment.weburl %}
+                    <a id="comment-{{comment.key.id}}" class="url" target="_blank" href="{{comment.weburl}}"><strong>{{comment.author}}</strong></a>
+                    {% else %}<strong>{{comment.author}}</strong>{%endif%}<small>{{comment.date|datetz:"Y-m-d"}} at {{comment.date|datetz:"H:i"}}</small>
+                    {% if comment.reply_notify_mail %}
+                    <a onclick="return backcomment('{{comment.author}}','{{comment.key.id}}')" href="#commentform" title="@{{comment.author}}-{{comment.key.id}}:" ><img alt='' src='/themes/{{ blog.theme_name }}/images/bk_link_mailreply.png' height='21' width='46' /></a> 
+                    {% else %}
+                    <a onclick="return backcomment('{{comment.author}}','{{comment.key.id}}')" href="#commentform" title="@{{comment.author}}-{{comment.key.id}}:"><img alt='' src='/themes/{{ blog.theme_name }}/images/bk_link_reply.png' height='21' width='46' /></a> 
+                    {% endif %}
+                    </p>    
+                <div class="commenttext" id="commenttext-{{comment.key.id}}">{{comment.content}}</div>
+            </div>
+        </li>

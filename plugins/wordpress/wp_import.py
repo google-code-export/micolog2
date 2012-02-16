@@ -109,13 +109,19 @@ class import_wordpress:
         return len(self.categories)+len(self.entries)
 
     def pop(self):
-        if len(self.categories) > 0:
-            self.cur_do = ('cat', self.categories.pop())
-            return self.cur_do
+        try:
+            if len(self.categories) > 0:
+                self.cur_do = ('cat', self.categories.pop())
+                return self.cur_do
+        except :
+            logging.exception('pop error at categories')
 
-        if len(self.entries) > 0:
-            self.cur_do = ('entry', self.entries.pop())
-            return self.cur_do
+        try:
+            if len(self.entries) > 0:
+                self.cur_do = ('entry', self.entries.pop())
+                return self.cur_do
+        except :
+            logging.exception('pop error at entries')
         return None
 
     def __getstate__(self):

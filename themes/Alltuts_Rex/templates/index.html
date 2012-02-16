@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block head_block %}
+
+{% endblock %}
+
+{% block content %}
+		<!-- Begin #colLeft -->
+		<div id="colLeft">
+		{% if entries %}
+        {% for entry in entries %}
+		<!-- Begin .postBox -->
+		<div class="postBox">
+			<div class="postBoxTop"></div>
+			<div class="postBoxMid">
+				<div class="postBoxMidInner first clearfix">
+				<div class="date">{{entry.date|datetz:"M"}}<br /><span class="day">{{entry.date|datetz:"j"}}</span><br />{{entry.date|datetz:"Y"}}</div>
+				<div class="category">{%for cate in entry.categories%}<a href="/category/{{cate.slug}}">{{cate.name}}</a> {%endfor%}</div>
+				<h1><a href="/{{ entry.link|escape }}" rel="bookmark" title="点击阅读： {{entry.title}}">{{entry.title}}</a></h1> 
+				<div class="textPreview">
+							{{entry|excerpt_more:""}}
+				</div>
+				<div class="postMeta">
+					<a href="/{{entry.link|escape}}" class="more-link">Continue Reading &raquo;</a>
+					<div class="metaRight">
+						<img src="/themes/{{ blog.theme_name }}/images/ico_author.png" alt="本文作者"/>  文章作者：{{entry.author_name}}&nbsp;&nbsp;&nbsp;
+					<img src="/themes/{{ blog.theme_name }}/images/ico_comments.png" alt="Comments"/> <a href="/{{entry.link|escape}}#comments"> {{entry.commentcount}} 条评论</a>
+					</div>
+				</div>
+				</div>
+			</div>
+			<div class="postBoxBottom"></div>
+		</div>		
+		<!-- End .postBox -->
+        {% endfor %}
+				<div class="navigation">
+					<script type="text/javascript" src="/themes/{{ blog.theme_name }}/js/pagenavi.js"></script>
+					<script type="text/javascript">
+					showPageLink("/page/",{{pageindex}},{{pagecount}},"");
+					</script>
+					<span class="pages">&nbsp;&nbsp;&nbsp;&nbsp;共 {{pagecount}} 页，第 {{pageindex}} 页</span>
+				</div>
+		{% else %}
+		<p>不好意思，没有找到您要的文章，或许您可以在搜索栏查找一下。</p>
+			{% endif %}
+		</div>
+		<!-- End #colLeft -->
+		{% include "sidebar.html" %}
+{% endblock %}

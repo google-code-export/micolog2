@@ -1,0 +1,136 @@
+<!-- Begin #colRight version 5 -->
+<div id="colRight">
+    <!-- ad -->
+    <div id="right-col-ad">
+        <div id="ad-side-big-1">
+        <script type="text/javascript"><!--
+            google_ad_client = "ca-pub-8808414202848454";
+            /* side_big_1 */
+            google_ad_slot = "2654118518";
+            google_ad_width = 336;
+            google_ad_height = 280;
+            //-->
+            </script>
+            <script type="text/javascript"
+            src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+            </script>
+        </div>
+        <div style="height:6px"></div>
+        <div id="ad-side-big-2">
+            <script type="text/javascript"><!--
+                google_ad_client = "ca-pub-8808414202848454";
+                /* side_big_2 */
+                google_ad_slot = "0221789489";
+                google_ad_width = 336;
+                google_ad_height = 280;
+                //-->
+                </script>
+                <script type="text/javascript"
+                src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+                </script>
+        </div>
+    </div>
+    <!-- end ad -->
+    <div style="height:6px"></div>
+    <!--搜索-->
+    <form id="searchform" action="http://www.google.com/search" target="_blank" method="get">
+			<div class="rightBox">
+				<div class="rightBoxTop"></div>
+				<div class="rightBoxMidSearch">
+					<input type="text" id="as_q" name="as_q" value="type your search here" onfocus="this.value=''" />
+                    <input name="as_sitesearch" value="{{ blog.baseurl}}" type="hidden" />
+					<input type="submit" value="" class="submit" id="searchsubmit"/>
+				</div>	
+				<div class="rightBoxBottom"></div>
+			</div>
+		</form>
+    <!--end search-->
+    <div class="rightBox">
+        <div class="rightBoxTop">
+        </div>
+        <div class="rightBoxMid">
+            <h2>
+                热门文章
+            </h2>
+            {% if blog.hotposts %}
+            <ul>
+                {% for entry in blog.hotposts %}
+                <li><a href="/{{entry.link|escape}}" title="{{entry.title}}">{{entry.title}}</a>({{entry.readtimes}})</li>
+                {%endfor%}
+            </ul>
+            {% endif %}
+        </div>
+        <div class="rightBoxBottom">
+        </div>
+    </div>
+	<!-- 友情链接 -->
+    <div class="rightBox">
+        <div class="rightBoxTop">
+        </div>
+        <div class="rightBoxMid">
+            <h2>
+                好友博客(随机序)
+            </h2>
+            {% if blogroll %}
+            <ul>
+                {%for link in blogroll%}
+                <li><a href="{{link.href}}" target="_blank">{{link.linktext}}</a> </li>
+                {%endfor%}
+            </ul>
+            {% endif %}
+        </div>
+        <div class="rightBoxBottom">
+        </div>
+    </div>
+    <div class="rightBox">
+	<div class="rightBoxTop"></div>                
+	<div class="rightBoxMid">
+	<h2>最新文章</h2> 
+    {% if blog.recentposts %}
+	   <ul>
+	    {% for entry in blog.recentposts %}
+	    <li><a href="/{{entry.link|escape}}" title="{{entry.title}}">{{entry.title}}</a>({{entry.readtimes}})</li>
+	    {%endfor%}
+	   </ul>
+	{% endif %}
+    </div>
+    <div class="rightBoxBottom"></div>
+    </div>
+    
+    <div class="rightBox">
+        <div class="rightBoxTop"></div>
+        <div class="rightBoxMid">
+            <h2>最新评论</h2>
+            {% if recent_comments %}
+            <ul class="new-comments">
+                {% for comment in recent_comments %}
+                <li>
+                    <a href="/{{comment.entry.link}}#comment-{{comment.key.id}}" title="评论于：{{comment.entry.title}}">
+                        <img alt='' src='{{comment.gravatar_url}}' />{{comment.author}}
+                    </a>
+                    <span> 说：{{comment.shortcontent}} ...
+                    </span> 
+                </li>
+                {%endfor%}
+            </ul>
+            {% endif %}
+        </div>
+        <div class="rightBoxBottom"></div>
+    </div>
+	<div class="rightBox">
+		<div class="rightBoxTop"></div>                
+		<div class="rightBoxMid">
+			<h2>文章归档</h2>               
+			{% if archives %}
+			<ul>
+				{%for archive in archives%}
+				<li><a href="/{{archive.year}}/{{archive.month}}">{{archive.year}}年{{archive.month}}月</a>({{archive.entrycount}})</li>
+				{%endfor%}
+			</ul>
+			{% endif %}
+    </div>
+    <div class="rightBoxBottom"></div>
+    </div>	
+    <div id="bottom_most_of_right_col"></div>	
+</div>
+<!-- End #colRight -->

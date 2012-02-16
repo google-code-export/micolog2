@@ -1,0 +1,80 @@
+<!-- comments  -->
+
+{% if entry.allow_comment %}
+<script type="text/javascript" src="/static/js/jquery.cookie.js"></script>
+<script type="text/javascript" src="/static/js/jquery.form.utf8.js"></script>
+<script type="text/javascript" src="/themes/{{ blog.theme_name }}/js/comment.js"></script>
+<a name="comments"></a> <!--回复使用的锚-->
+<div id="comments-wrap">
+     <div class="commentstitle">
+    <h2 class="respond">评论</h2><a href="#commentform" class="addComment">我要留言</a>
+       </div>
+        {% if comments %}
+        <ul id="thecomments">
+        {% for comment in comments %}
+        <li id="comment-{{comment.key.id}}" class="comment">
+            <div class="commentleft">
+            <p class="floor">&nbsp;&nbsp;&nbsp;{{ comment.no }} F</p>
+            <img alt='' src='{{comment.gravatar_url}}' class='avatar avatar-38 photo avatar-default' height='38' width='38' />                
+            </div>
+            <div class="commentright clearfix">
+                <p class="header" > 
+                    {%if comment.weburl %}
+                    <a id="comment-{{comment.key.id}}" class="url" target="_blank" href="{{comment.weburl}}">{{comment.author}}</a>
+                    {% else %}<span>{{comment.author}}&nbsp;</span>{%endif%}<small>{{comment.date|datetz:"Y-m-d"}} at {{comment.date|datetz:"H:i"}}</small>
+                    {% if comment.reply_notify_mail %}
+                    <a onclick="return backcomment('{{comment.author}}','{{comment.key.id}}')" href="#commentform" title="@{{comment.author}}-{{comment.key.id}}:" ><img alt='' src='/themes/{{ blog.theme_name }}/images/bk_link_mailreply.png' height='21' width='46' /></a> 
+                    {% else %}
+                    <a onclick="return backcomment('{{comment.author}}','{{comment.key.id}}')" href="#commentform" title="@{{comment.author}}-{{comment.key.id}}:"><img alt='' src='/themes/{{ blog.theme_name }}/images/bk_link_reply.png' height='21' width='46' /></a> 
+                    {% endif %}
+                    </p>    
+                <div class="commenttext" id="commenttext-{{comment.key.id}}">{{comment.content}}</div>
+            </div>
+        </li>
+        {% endfor %}
+        </ul>
+        <div class="commentsnavi"><span>{{comments_nav.nav}}</span></div>
+        </ul>
+        {% else %}
+        <ul id="thecomments" class="commentlist"></ul>
+        {% endif %}
+     <h2 id="commentsForm"><strong>留下您的评论</strong></h2>
+    <input type="hidden" value="{{blog.comment_check_type}}" id="check_type"/>
+    <form action="/post_comment" method="post" id="commentform">
+        <div id="conmmentform">
+            <div id="conmmentforminfo">
+                <label class="conmmentform-title" for="author">您的昵称(必填)</label> 
+                <p><input type="text" name="author" id="author" value="" tabindex="1" /></p>
+                <label class="conmmentform-title" for="email">Email(必填，保密)</label>
+                <p><input type="text" name="email" id="email" value="" tabindex="2" /></p> 
+                <label class="conmmentform-title" for="url">您的网站</label>
+                <p><input type="text" name="url" id="url" value="" tabindex="3" /></p>
+                
+                <div id="checkarea">
+                <label class="conmmentform-title" for="checkret" >验证码 (<a href="javascript:showCheckImage();">点击显示或更新</a>)：</label><label id="check"></label>
+                <p><input type="text" name="checkret" id="checkret" value="" tabindex="4" /></p>
+                <input type="hidden" name="challenge" id="challenge" value="" />
+                </div>
+            </div>
+            <div id="conmmentformtext">
+            <p>填写评论</p>
+                <div><textarea name="comment" id="comment" rows="10" cols="10" tabindex="5"></textarea></div>
+                <p>
+                    <input type="hidden" name="key" value="{{entry.key}}" />
+                    <input type="hidden" name="useajax" value="1" />
+                    <input type="submit"  name="submit" id="submit" value="添加评论" class="comment-button" onClick="" tabindex="6" />
+                    <input name="reply_notify_mail" id="reply_notify_mail" tabindex="7" 
+                        style="width: auto;" type="checkbox" />
+                    <label for="reply_notify_mail">有回复时邮件通知我</label>
+                </p>
+            </div>
+            <div id="s_msg" style="display:none;color:red">正在提交留言...</div>
+        </div>
+<!--[if IE]><SCRIPT src="/themes/{{ blog.theme_name }}/js/cookies.js" type=text/javascript></SCRIPT><![endif]-->
+    </form>
+</div> 
+{% else %}
+<div id="comments-wrap"><p class="nocomments">评论已关闭</p></div>
+{% endif %}
+
+<!-- /comments -->

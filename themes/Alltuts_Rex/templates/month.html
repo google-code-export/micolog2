@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %} {{year}}年{{month}}月 - {{blog.title}} {% endblock %}
+{% block content %}
+		<!-- Begin #colLeft -->
+		<div id="colLeft">
+			{% if entries %}				
+		<!-- Begin .postBox -->
+				<div class="top-title"><span><strong>“{{year}}年{{month}}月”</strong> 的文章</span></div>
+				{% for entry in entries %}
+							<!-- Begin .postBox -->
+		<div class="postBox">
+			<div class="postBoxTop"></div>
+			<div class="postBoxMid">
+				<div class="postBoxMidInner first clearfix">
+				<div class="date">{{entry.date|datetz:"M"}}<br /><span class="day">{{entry.date|datetz:"j"}}</span><br />{{entry.date|datetz:"Y"}}</div>
+				<div class="category">{%for cate in entry.categories%}<a href="/category/{{cate.slug}}">{{cate.name}}&nbsp;&nbsp;</a> {%endfor%}</div>
+				<h1><a href="/{{ entry.link|escape }}" rel="bookmark" title="点击阅读： {{entry.title}}">{{entry.title}}</a></h1>
+				<div class="textPreview">
+							{{entry|excerpt_more:""}}
+				</div>
+				<div class="postMeta">
+					<a href="/{{entry.link|escape}}" class="more-link">Continue Reading &raquo;</a>
+					<div class="metaRight">
+						<img src="/themes/{{ blog.theme_name }}/images/ico_author.png" alt="本文作者"/>  文章作者：{{entry.author_name}}&nbsp;&nbsp;&nbsp;
+					<img src="/themes/{{ blog.theme_name }}/images/ico_comments.png" alt="Comments"/> <a href="/{{entry.link|escape}}#comments"> {{entry.commentcount}} 条评论</a>
+					</div>
+				</div>
+				</div>
+			</div>
+			<div class="postBoxBottom"></div>
+		</div>		
+		<!-- End .postBox -->
+        {% endfor %}
+	<div class="navigation">
+			{% if pager.prev %}
+			<div class="alignleft"><a href="?page={{ pager.prev}}">&laquo; 上一页</a></div>
+			{% endif %}
+			{% if pager.next %}
+			<div class="alignright"><a href="?page={{ pager.next }}">下一页 &raquo;</a></div>
+			{% endif %}
+		</div>
+		{% else %}
+		<p>不好意思，没有找到你要的文章，或许你可以在搜索栏查找一下。</p>
+			{% endif %}
+		</div>
+		<!-- End #colLeft -->
+		{% include "sidebar.html" %}
+
+{% endblock %}

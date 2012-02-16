@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head profile="http://gmpg.org/xfn/11">
+    {%mf head%} <title>{% block title %} {{ blog.title}}{% endblock %}</title>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <meta name="description" content="Rex的博客,记录Rex的IT生活。" />
+    {% if entry %}
+     {% if entry.strtags %}
+       <meta name="keywords" content="{{entry.strtags}}" />
+     {% endif %}
+    {% else %}
+       <meta name="keywords" content="IT,Website,Life,Windows,Linux,Software,Program" />
+    {% endif %}
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="alternate" type="application/rss+xml" title="{{ blog.title }} RSS Feed"
+        href="{{ blog.feedurl }}" />
+    <link href="/themes/{{ blog.theme_name }}/style.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
+    <script type="text/javascript" src="/themes/{{ blog.theme_name }}/js/ads.js"></script>
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-16118270-1']);
+        _gaq.push(['_setDomainName', '.rexzhao.com']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+
+    </script>
+    <!--
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    -->
+    {%endmf%}
+</head>
+<body>
+    <!--(for Debug) blog version: 10.0 -->
+    <!-- Begin #wrapper -->
+    <div id="wrapper">
+        <!-- Begin #header -->
+        <div id="header">
+            <div id="logo">
+                <div id="textlogo">
+                    This is me, Rex</div>
+                <br />
+                <span>{{ blog.subtitle}}</span></div>
+            <!-- Begin #topMenu -->
+            <div id="topmenu" class="catemenu">
+                {% if categories %}<ul>
+                    {%for cate in categories%}<li><a href="/category/{{cate.slug}}">{{cate.name}} ({{cate.count}})</a></li>{%endfor%}</ul>
+                {% endif %}
+            </div>
+            <!-- End #topMenu -->
+            <!-- Begin #topMenuRight -->
+            <div id="topMenuRight">
+                <ul>
+                    <li class="{%if ishome%}current_page_item{%else%}page_item{%endif%}"><a href="/"
+                        title="首页">首页</a></li>
+                    {{self.m_list_pages}}
+                </ul>
+            </div>
+            <!-- End #topMenuRight -->
+            <!-- Begin #socialLinks -->
+            <div id="socialLinks">
+                <a href="{{ blog.feedurl }}" title="RSS" class="rss">Subscribe to our RSS Feed!</a>
+            </div>
+            <!-- End #socialLinks -->
+        </div>
+        <!-- End #header -->
+        <!-- Begin #content -->
+        <div id="content" class="clearfix">
+            {% block content %}{% endblock %}
+        </div>
+        <!-- end content -->
+    </div>
+    <!-- end wrapper -->
+    <!-- begin footer -->
+    <div id="end-of-content"></div>
+    <div id="footer">
+        {%mf footer%}
+        <div id="footerInner">
+            <h2>
+                博客公告</h2>
+            {{blog.blognotice}}
+        </div>
+        {%endmf%}
+    </div>
+    <div id="copyright">
+		<div id="copyrightInner">
+            <span class="copyrightleft";>&copy;Copyright 2010 {{ blog.title}}. Powered by 
+                <a href="https://appengine.google.com">GAE</a>
+                 and 
+                <a href="http://micolog2.rexzhao.com/">Micolog2</a>, Theme Mod By <a href="http://www.takeasy.org.ru">Takeasy</a> and <a href="http://blog.rexzhao.com">Rex</a>.
+             </span>
+		     <div id="site5bottom"><a href="http://gk.site5.com/t/237">Site5.com | Experts in Web Hosting.</a>{%mf footer%}{%endmf%}</div>
+		</div>
+	</div>
+    <!-- end footer -->
+</body>
+</html>

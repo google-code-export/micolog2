@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block head_block %}
+
+{% endblock %}
+
+{% block content %}
+		<!-- Begin #colLeft -->
+		<div id="colLeft">
+		{% if entries %}
+        {% for entry in entries %}
+		<!-- Begin .postBox -->
+		<div class="postBox">
+			<div class="postBoxTop"></div>
+			<div class="postBoxMid">
+				<div class="postBoxMidInner first clearfix">
+				<div class="date">{{entry.date|datetz:"M"}}<br /><span class="day">{{entry.date|datetz:"j"}}</span><br />{{entry.date|datetz:"Y"}}</div>
+				<div class="category">{%for cate in entry.categories%}<a href="/category/{{cate.slug}}">{{cate.name}}</a> {%endfor%}</div>
+				<h1><a href="/{{ entry.link|escape }}" rel="bookmark" title="Click to read: {{entry.title}}">{{entry.title}}</a></h1> 
+				<div class="textPreview">
+							{{entry|excerpt_more:""}}
+				</div>
+				<div class="postMeta">
+					<a href="/{{entry.link|escape}}" class="more-link">Continue Reading &raquo;</a>
+					<div class="metaRight">
+						<img src="/themes/{{ blog.theme_name }}/images/ico_author.png" alt="Author"/>  Author：{{entry.author_name}}&nbsp;&nbsp;&nbsp;
+					<img src="/themes/{{ blog.theme_name }}/images/ico_comments.png" alt="Comments"/> <a href="/{{entry.link|escape}}#comments"> {{entry.commentcount}} comment(s)</a>
+					</div>
+				</div>
+				</div>
+			</div>
+			<div class="postBoxBottom"></div>
+		</div>		
+		<!-- End .postBox -->
+        {% endfor %}
+				<div class="navigation">
+					<script type="text/javascript" src="/themes/{{ blog.theme_name }}/js/pagenavi.js"></script>
+					<script type="text/javascript">
+					showPageLink("/page/",{{pageindex}},{{pagecount}},"");
+					</script>
+					<span class="pages">&nbsp;&nbsp;&nbsp;</span>
+				</div>
+		{% else %}
+		<p>Sorry, we can not find any posts.You may try to search in the search bar.</p>
+			{% endif %}
+		</div>
+		<!-- End #colLeft -->
+		{% include "sidebar.html" %}
+
+{% endblock %}

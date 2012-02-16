@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %} {{entry.title}} - {{blog.title}} {% endblock %}
+
+{% block content %}
+<!-- Begin #colLeft -->
+		<div id="colLeft">
+		{% if entry %}
+		<!-- Begin .postBox -->
+		<div class="postBox">
+			<div class="postBoxTop"></div>
+			<div class="postBoxMid">
+				<div class="postBoxMidInner first clearfix">
+				<div class="date">{{entry.date|datetz:"M"}}<br /><span class="day">{{entry.date|datetz:"j"}}</span><br />{{entry.date|datetz:"Y"}}</div>
+				<div class="category">{%for cate in entry.categories%}<a href="/category/{{cate.slug}}">{{cate.name}}&nbsp;&nbsp;</a> {%endfor%}</div>
+				<h1><a href="/{{ entry.link|escape }}" rel="bookmark" title="点击阅读： {{entry.title}}">{{entry.title}}</a></h1> 
+				<div class="postMetaSingle">
+					<img src="/themes/{{ blog.theme_name }}/images/ico_author.png" alt="本文作者"/>  文章作者：{{entry.author_name}}&nbsp;&nbsp;&nbsp;
+					<img src="/themes/{{ blog.theme_name }}/images/ico_comments.png" alt="Comments"/> <a href="/{{entry.link|escape}}#comments"> <span id="commentcount">{{entry.commentcount}}</span> 条评论</a>
+					<br />
+					<br />
+					<span style="font-style:italic; font-size:9px; padding-left:36px; color:red">如需转载，请注明文章<a href="http://blog.rexzhao.com" title="Rex">作者</a>和<a href="http://blog.rexzhao.com/{{entry.link|escape}}">出处</a>。</span>
+				</div>
+                <div>
+                    <div id="post-top-right-ad">
+                        <script type="text/javascript"><!--
+                            google_ad_client = "ca-pub-8808414202848454";
+                            /* post_right_top */
+                            google_ad_slot = "6589390346";
+                            google_ad_width = 300;
+                            google_ad_height = 250;
+                        //-->
+                        </script>
+                        <script type="text/javascript"
+                            src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+                        </script>
+                    </div>
+							{{ entry.content }}
+                <div class="clearboth"></div>
+				</div>
+                    <div class="postTags">
+                    标签：{%for tag in entry.tags%}<a rel="tag" href="/tag/{{tag|urlencode}}">{{tag}}&nbsp;&nbsp;</a>{%endfor%}
+                </div>
+					
+				</div>
+				<div class="postCredentials">
+                
+                <!-- Social Sharing Icons -->
+					<div class="social">
+					    <strong>喜欢吗？分享它！</strong>
+						<a href="http://share.renren.com/share/buttonshare.do?link=http://blog.rexzhao.com/{{ entry.link|escape }}&amp;title={{entry.title}}">
+						<img src="/themes/{{ blog.theme_name }}/images/renren.bmp" alt="分享到人人网！" /></a>				
+						<a href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://blog.rexzhao.com/{{entry.link|escape}}&amp;title={{entry.title}}">
+						<img src="/themes/{{ blog.theme_name }}/images/qqzone.bmp" alt="分享到QQ空间！" /></a>				
+						<a href="http://v.t.sina.com.cn/share/share.php?url=http://blog.rexzhao.com/{{ entry.link|escape }}&amp;title={{entry.title}}">
+						<img src="/themes/{{ blog.theme_name }}/images/xlwb.bmp" alt="分享到新浪微博！" /></a>
+                        <a href="http://www.kaixin001.com/repaste/share.php?rtitle={{entry.title}}&amp;rurl=http://blog.rexzhao.com/{{ entry.link|escape }}">
+						<img src="/themes/{{ blog.theme_name }}/images/kaixin.bmp" alt="分享到开心网！" /></a>
+						<a href="http://www.douban.com/recommend/?url={{entry.link|escape}}&amp;title={{entry.title}}">
+						<img src="/themes/{{ blog.theme_name }}/images/db.bmp" alt="分享到豆瓣！" id="sharethis-last" /></a>									
+					</div>
+				<!-- end Social Sharing Icons -->
+
+                <!-- Related Posts-->
+                    {% if relateposts %}			
+                    <h2><strong>更多相关文章</strong></h2>            
+                    <ul class="relatedPosts">
+                    {%for post in relateposts%}
+                        <li><a href="/{{post.link|escape}}">{{post.title}}</a></li>
+                    {%endfor%}
+                    </ul>
+                    {% endif %}
+				<!-- end Related Posts-->
+        </div>
+
+		<div class="postBoxMidInner">
+		{% include "comments.html" %}
+			</div>
+			</div>
+			<div class="postBoxBottom"></div>
+		</div>
+		{% else %}
+
+		<p>不好意思，没有找到您要的文章，或许您可以在搜索栏查找一下。</p>
+
+	{% endif %}
+		
+			</div>
+		<!-- End #colLeft -->
+        
+{% include "sidebar.html" %}
+
+{% endblock %}

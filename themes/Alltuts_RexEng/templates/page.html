@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %} {{entry.title}} - {{blog.title|escape}} {% endblock %}
+
+{% block head_block %}
+
+{% if entry %}
+{%if entry.strtags%}<meta name="Keywords" content="{{entry.strtags|escape}}" />{%endif%}
+{%if entry.excerpt%} <meta name="Description" content="{{entry.excerpt|escape}}" />{%endif%}
+{% endif %}
+
+{% endblock %}
+
+{% block content %}
+
+<!-- begin colLeft -->
+	<div id="colLeft">
+    <!-- Begin .postBox -->
+		<div class="postBox">
+			<div class="postBoxTop"></div>
+			<div class="postBoxMid">
+            {% if entry %}
+				<div class="postBoxMidInner first clearfix">
+				<h1><a href="/{{ entry.link|escape }}" rel="bookmark" title="Click to read: {{entry.title}}">{{entry.title}}</a></h1> 
+				
+                <p>
+							{{ entry.content }}
+                <div class="clearboth"></div>
+				</p>
+			</div>
+					<div class="postCredentials">							
+							<!-- Social Sharing Icons -->
+							<div class="social"></div>
+							<!-- end Social Sharing Icons -->							
+		</div>
+            		<div class="postBoxMidInner">
+		{% include "comments.html" %}
+			</div>            
+            {% else %}
+
+		<p>Sorry, we can not find any posts.</p>
+
+	{% endif %}
+		</div>
+		<div class="postBoxBottom"></div>
+        </div>
+	 <!-- End .postBox -->
+	</div>
+	<!-- end colleft -->
+{% include "sidebar.html" %}
+
+{% endblock %}

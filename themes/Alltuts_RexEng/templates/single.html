@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %} {{entry.title}} - {{blog.title|escape}} {% endblock %}
+
+{% block content %}
+<!-- Begin #colLeft -->
+		<div id="colLeft">
+		{% if entry %}
+		<!-- Begin .postBox -->
+		<div class="postBox">
+			<div class="postBoxTop"></div>
+			<div class="postBoxMid">
+				<div class="postBoxMidInner first clearfix">
+				<div class="date">{{entry.date|datetz:"M"}}<br /><span class="day">{{entry.date|datetz:"j"}}</span><br />{{entry.date|datetz:"Y"}}</div>
+				<div class="category">{%for cate in entry.categories%}<a href="/category/{{cate.slug}}">{{cate.name}}&nbsp;&nbsp;</a> {%endfor%}</div>
+				<h1><a href="/{{ entry.link|escape }}" rel="bookmark" title="Click to read： {{entry.title}}">{{entry.title}}</a></h1> 
+				<div class="postMetaSingle">
+					<img src="/themes/{{ blog.theme_name }}/images/ico_author.png" alt="author"/>  Author：{{entry.author_name}}&nbsp;&nbsp;&nbsp;
+					<img src="/themes/{{ blog.theme_name }}/images/ico_comments.png" alt="Comments"/> <a href="/{{entry.link|escape}}#comments"> <span id="commentcount">{{entry.commentcount}}</span> comments</a>
+				</div>
+                <div>
+                    <div id="post-top-right-ad">
+                        <script type="text/javascript"><!--
+                            google_ad_client = "ca-pub-8808414202848454";
+                            /* post_right_top */
+                            google_ad_slot = "6589390346";
+                            google_ad_width = 300;
+                            google_ad_height = 250;
+                        //-->
+                        </script>
+                        <script type="text/javascript"
+                            src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+                        </script>
+                    </div>
+					{{ entry.content }}
+                    <div class="clearboth"></div>
+				</div>
+				<br />
+				<form name="_xclick" action="https://www.paypal.com/cgi-bin/webscr" method="post">
+				    <span style="color:red; font-style:italic; font-size: 9px">If you feel this post helpful, consider</span>
+                    <input type="hidden" name="cmd" value="_xclick">
+                    <input type="hidden" name="business" value="fdrex1987@gmail.com">
+                    <input type="hidden" name="item_name" value="Blog Donation">
+                    <input type="hidden" name="currency_code" value="USD">
+                    <input type="hidden" name="amount" value="">
+                    <input type="image" style="vertical-align:middle" src="http://www.paypal.com/en_US/i/btn/btn_donate_LG.gif" border="0" name="submit" alt="Make payments with PayPal - it's fast, free and secure!">
+                    <span style="color:red; font-style:italic; font-size: 9px">to support me. Any amount is appreciated!</span>
+                </form>
+                <div class="postTags">
+                    Tags: {%for tag in entry.tags%}<a rel="tag" href="/tag/{{tag|urlencode}}">{{tag}}&nbsp;&nbsp;</a>{%endfor%}
+                </div>
+				</div>
+				<div class="postCredentials">
+
+                <!-- Social Sharing Icons -->
+					<div class="social">
+					    <strong>Did you enjoy this article? Share it!</strong>
+						<a href="http://twitter.com/home/?status={{entry.title}}:http://engblog.rexzhao.com/{{ entry.link|escape }}" title="Tweet this!">
+						<img src="/themes/{{ blog.theme_name }}/images/twitter.png" alt="Tweet this!" /></a>				
+						<a href="http://www.stumbleupon.com/submit?url=http://engblog.rexzhao.com/{{ entry.link|escape }}&amp;title={{entry.title}}" title="StumbleUpon.">
+						<img src="/themes/{{ blog.theme_name }}/images/stumbleupon.png" alt="StumbleUpon" /></a>
+						<a href="http://digg.com/submit?phase=2&amp;url=http://engblog.rexzhao.com/{{ entry.link|escape }}&amp;title={{entry.title}}" title="Digg this!">
+						<img src="/themes/{{ blog.theme_name }}/images/digg.png" alt="Digg This!" /></a>				
+						<a href="http://del.icio.us/post?url=http://engblog.rexzhao.com/{{ entry.link|escape }}&amp;title={{entry.title}}" title="Bookmark on Delicious.">
+						<img src="/themes/{{ blog.theme_name }}/images/delicious.png" alt="Bookmark on Delicious" /></a>
+						<a href="http://www.facebook.com/sharer.php?u=http://engblog.rexzhao.com/{{ entry.link|escape }}&amp;t={{entry.title}}" title="Share on Facebook.">
+						<img src="/themes/{{ blog.theme_name }}/images/facebook.png" alt="Share on Facebook" id="sharethis-last" /></a>									
+					</div>
+				<!-- end Social Sharing Icons -->
+
+              <!-- Related Posts-->
+              {% if relateposts %}
+              <h2><strong>Related posts</strong></h2>
+              <ul class="relatedPosts">
+              {%for post in relateposts%}
+                <li><a href="/{{post.link|escape}}">{{post.title|escape}}</a></li>
+              {%endfor%}
+              </ul>
+              {% endif %}
+							<!-- end Related Posts-->
+        </div>
+
+		        <div class="postBoxMidInner">
+		            {% include "comments.html" %}
+			    </div>
+			</div>
+			<div class="postBoxBottom"></div>
+		</div>
+		{% else %}
+
+		<p>Sorry, we can not find any posts.</p>
+
+	{% endif %}
+		
+			</div>
+		<!-- End #colLeft -->
+        
+{% include "sidebar.html" %}
+
+{% endblock %}
