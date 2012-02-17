@@ -1,1 +1,0 @@
-Alltuts_Rex(Eng)这两款主题是我自己用的。之所以放进来，是不想每次更新代码后再和自己的博客程序合并了。主题里有一些关于我个人博客的绑定，例如meta数据、Google Adsense, Google Analysis，喜欢这款主题的朋友可以在base.html和sidebar.html里面找找，然后替换为自己的。
