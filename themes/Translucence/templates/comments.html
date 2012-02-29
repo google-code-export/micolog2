@@ -1,0 +1,126 @@
+
+<!-- You can start editing here. -->
+
+{% if entry.comments.count%}
+	<h4 id="comments">{{entry.comments.count}} Comments</h4>
+	<ol class="commentlist">
+	{% for comment in comments %}
+		<li class="{%cycle thread-even,thread-alt %}" id="comment-{{comment.key.id}}">
+		    <div id="div-comment-{{comment.key.id}}" class="comment-body">
+			    <div class="comment-author vcard"> 
+		            <img alt="" src="{{comment.gravatar_url}}" class="avatar avatar-38 photo" height="38" width="38" />		
+		            <cite class="fn"><a href="{{comment.weburl}}" target="_blank" class="url">{{comment.author}}</a></cite> 
+		            <span class="says">comment is</span>
+					<span><a onclick="return backcomment('{{comment.author}}', '{{comment.key.id}}', 'Textarea1');" href="#comment">Reply</a></span>
+		        </div> 
+		        <div class="comment-meta commentmetadata"><a href="#comment-{{comment.key.id}}" title="">{{comment.date.date|datetz:"M j Y"}} at {{comment.date|datetz:"H:i"}}</a></div> 
+		        <p>{{comment.content}}</p>
+            </div>
+		</li>
+	{%endfor%}
+	</ol>
+    <div id="commentsnavi">
+    {{comments_nav.nav}}
+    </div>
+{%endif%}
+
+{% if entry.allow_comment %}
+<div id="respond">
+    <h4>Leave a Reply</h4>
+</div>
+<form action="/post_comment" method="post" id="commentform">
+
+<p><input type="text" name="author" id="author" value="{{user_name}}" size="22" tabindex="1" class="commentTextBox" />
+    <label for="author"><small>Nick Name（Necessary）</small></label></p>
+
+<p><input type="text" name="email" id="email" value="{{user_email}}" size="22" tabindex="2" class="commentTextBox" />
+    <label for="email"><small>Email Address（I won't tell anybody）（Necessray）</small></label></p>
+
+<p><input type="text" name="url" id="url" value="{{user_url}}" size="22" tabindex="3" class="commentTextBox" />
+    <label for="url"><small>Website（If you have）</small></label></p>
+
+<p><textarea name="comment" id="Textarea1" cols="65" rows="10" tabindex="4" class="commentTextBox"></textarea></p>
+
+<p id="checkarea"><span style="color:#D50000" id="disp_check">{{checknum1}}+{{checknum2}}=</span>
+<input type="hidden" name="checknum" id="checknum" value="{{checknum1}}+{{checknum2}}" />
+<input type="text" name="checkret" id="checkret" value="" size="5" tabindex="4" class="commentTextBox" />
+<input name="reply_notify_mail" id="reply_notify_mail" tabindex="6" style="width: auto;" type="checkbox" checked="checked">
+<label for="reply_notify_mail">Email me when I get reply</label>
+</p>
+
+<p><input name="submit" type="submit"  id="submit" tabindex="5" value="Submit" />
+</p>
+<input type="hidden" name="key" value="{{entry.key}}" />
+</form>
+
+<script type="text/javascript">
+    commentuser=$.cookie('comment_user');
+       if (commentuser)
+       {
+         //[user,email,url]=commentuser.split('#@#');
+
+			commentuser=$.cookie('comment_user');
+			if (commentuser)
+			{
+				data=commentuser.split('#@#');
+				//alert(data);
+				$('#author').val(data[0]);
+				$('#email').val(data[1]);
+				$('#url').val(data[2]);
+			};
+			//$('#author').val(user);
+			//$('#email').val(email);
+			//$('#url').val(url);
+			//$('#checkarea').hide();
+       }
+       else
+       {
+       	num1=Math.round(Math.random()*10);
+       	num2=Math.round(Math.random()*10);
+       	$('#checkarea #checknum').val(num1+'+'+num2);
+       	$('#checkarea #disp_check').text(num1+'+'+num2+'=');
+       	$('#checkarea').show();
+       }
+
+  $('#commentform').submit(function(){
+         var form = this;
+           if (form.author)
+  		   {
+
+      			 if (!form.author.value)
+          		 {
+          		  alert('Please input your name.');
+          		  form.author.focus();
+          		  return false;
+          		 }
+          		 if (!form.email.value)
+          		 {
+          		 	alert('Please input the email address.');
+          		 	form.email.focus();
+          		 	return false;
+          		 }
+	       }
+
+  		 if (!form.comment.value)
+  		 {
+  		 	alert('Please leave some reply message.');
+  		 	form.comment.focus();
+  		 	return false;
+        }
+        if ($('#checkarea').css('display') != 'none') {
+          if (eval(form.checknum.value) != form.checkret.value) {
+              alert('check code error');
+              form.checkret.value = '';
+              form.checkret.focus();
+              return false;
+          }
+        }
+
+      		 return true;
+  });
+</script>
+{% else %}
+<p>Comments are closed!</p>
+{% endif %}
+
+

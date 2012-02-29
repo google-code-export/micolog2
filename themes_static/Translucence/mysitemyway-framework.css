@@ -1,0 +1,139 @@
+/* ____________________________________________________________________________________ CSS Reset */
+html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, p, 
+blockquote, pre, a, address, code, del, dfn, em, img, q, 
+dl, dt, dd, ol, ul, li, 
+table, caption, tbody, tfoot, thead, tr, th, td{margin:0;padding:0;border:0;vertical-align:baseline;}
+body {line-height:19px;word-spacing:.8px;font-size:12px;color:#444;font-family:"Microsoft YaHei",Tahoma,Arial,Helvetica,Sans-Serif;}
+hr,p,ul,ol,dl,pre,address,table,form{margin:7px 0px;}
+a:link,#site_name a{color:#333;text-decoration:none;}
+a:visited{color:#444;text-decoration:none;}
+a:hover,a:active,a:focus{color:#666;text-decoration:none;outline:none;-moz-outline-style:none;}
+
+/* ______________________________________________________________ TABLES */
+table {border-collapse:collapse;border-spacing:0;}
+caption, th, td {text-align:left;}
+table, td, th {vertical-align:middle;}
+th,td,textarea{border:1px solid #ddd;padding:5px;}
+td,textarea{background-color:#F9F9F9;}
+tr.alt td,th{background-color:#f1f1f1;}
+
+/* ______________________________________________________________ HEADERS */
+.page_title, #site_name, h1, h2, h3, h4, h5, h6 {word-spacing:.8px;margin: 20px 0;font-family:times,serif;font-weight:normal;font-style:italic;}	
+h1 {font-size:28px;}
+h2 {font-size:22px;}
+h3 {font-size:20px;}
+h4 {font-size:18px;}
+h5 {font-size:16px;}
+h6 {font-size:14px;}
+
+/* ______________________________________________________________ TYPOGRAPHY */
+strong,th,thead td,dt,dfn,b,caption,legend{font-weight:bold;}
+cite,em,dfn,i{font-style:italic;}
+hr{display:none;background-color:transparent !important;width:100%;height:1px;line-height:0px;border:0px solid transparent !important;}
+ul{list-style:square outside;}
+ol{list-style:decimal outside;}
+ul,ol,dd{margin-left:24px;}
+ul ul,ol ul,ul ol,ol ol{margin-bottom:0;}
+pre{font-family:mono-space,monospace;white-space:pre;overflow:auto;width:95%;padding:8px;}
+blockquote {margin:20px; padding:10px 40px;background: url('images/quote_dark.png') no-repeat 4px 4px;border:1px solid #ddd;background-color:#f9f9f9;}
+fieldset{padding:20px;border:1px solid #ddd;background-color:#f9f9f9;}
+
+
+/* ________________________________________________________________________________________________________________ Layout */
+
+
+#primary,#secondary,#tertiary{position:relative;overflow:hidden;}
+* html #primary,* html #secondary,* html #tertiary{display:inline;}
+
+
+/* ______________________________________________________________ Alignment */
+* html body.alignC{text-align:center;}
+body.alignC #container{position:relative;text-align:left;margin:0 auto;}
+body.alignR #container{position:relative;float:right;}
+body.alignL #container{position:relative;margin-left:0;}
+
+/* ______________________________________________________________ Sidebars */
+#container{width:900px;}
+
+body.sidebar_1R #primary{float:left;width:600px;}
+body.sidebar_1R #secondary{float:right;width:300px;}
+body.sidebar_1R #tertiary{display:none;}
+
+body.sidebar_2R #primary{float:left; width:450px;}
+body.sidebar_2R #secondary{float:left; width:225px;}
+body.sidebar_2R #tertiary{float:left; width:225px;}
+
+body.sidebar_1L #primary{float:right;width:600px;}
+body.sidebar_1L #secondary{float:right;width:300px;}
+body.sidebar_1L #tertiary{display:none;}
+
+body.sidebar_2L #primary{float:right; width:450px;}
+body.sidebar_2L #secondary{float:right; width:225px;}
+body.sidebar_2L #tertiary{float:right; width:225px;}
+
+body.sidebar_1R1L #primary{margin-left:225px;float:left; width:450px;}
+body.sidebar_1R1L #secondary{float:left;width:225px;}
+body.sidebar_1R1L #tertiary{margin-left:-900px;float:left; width:225px;}
+
+body.sidebar_0 #primary{}
+body.sidebar_0 #secondary{display:none;}
+body.sidebar_0 #tertiary{display:none;}
+
+/* ______________________________________________________________ Content Margins */
+#primary .content{margin:10px;}
+#secondary .content{margin:10px}
+#tertiary .content{margin:10px}
+
+/* ______________________________________________________________ Positioning */
+.clearboth{clear:both; display:block; height:0px; visibility:hidden;}
+#header,#body_block,#footer{position:relative;clear:both;width:100%;}
+#logo,#site_name,#tag_line,#header_searchbar,#header_image,#header_overlay,#announcement_text,#main_navigation{position:absolute;}
+
+#header{z-index:2;}
+#body_block{z-index:0;}
+#header_image{z-index:1;overflow:hidden;}
+#header_overlay{z-index:2;}	
+#announcement_text{z-index:3;}
+#header_searchbar{z-index:21;}
+
+#footer{text-align:center;font-size:12px; font-family:"Lucida Grande","Lucida Sans",arial,sans-serif;}
+#inner_footer{padding-top:20px;}
+#footer_nav,#footer_link,#footer_xtrainfo{clear:both;}
+#footer_nav ul{list-style:none;margin:0;}
+#footer_nav li{list-style:none;display:inline;padding:0 8px;}
+
+#logo,#header_image,#header_overlay{background-repeat:no-repeat;background-position:top left;}
+#header_searchbar #searchsubmit{display:none;}
+
+/* ______________________________________________________________ Menu */
+
+.jqueryslidemenu{position:relative;z-index:22;font: 11px Verdana;}
+.jqueryslidemenu ul{margin: 0;padding: 0;list-style-type: none;}
+/*Top level list items*/
+.jqueryslidemenu ul li{position: relative;display: inline;float: left;}
+.jqueryslidemenu ul li a,.jqueryslidemenu ul li a:link, .jqueryslidemenu ul li a:visited{color: #fff;}
+.jqueryslidemenu ul li a{
+	display: block;
+	background: transparent; /*background of tabs (default state)*/
+	padding: 9px 10px; /* controls height of menu*/
+	text-decoration: none;}
+.jqueryslidemenu ul li a:hover{background: transparent;color: white;}
+.jqueryslidemenu ul ul li a:hover{
+background: black; /*tab link background during hover state*/
+color: white;}
+.jqueryslidemenu ul ul li a{background-color:#171617;}
+* html .jqueryslidemenu ul li a{ /*IE6 hack to get sub menu links to behave correctly*/
+display: inline-block;}
+/*1st sub level menu*/
+.jqueryslidemenu ul li ul{position: absolute;left: 0;display: block;visibility: hidden;}
+/*Sub level menu list items (undo style from Top level List Items)*/
+.jqueryslidemenu ul li ul li{display: list-item;float: none;}
+/*All subsequent sub menu levels vertical offset after 1st level sub menu */
+.jqueryslidemenu ul li ul li ul{top: 0;}
+/* Sub level menu links style */
+.jqueryslidemenu ul li ul li a{width: 160px;padding: 6px;margin: 0;}
+/*sub menus hover style*/
+.jqueryslidemenuz ul li ul li a:hover{background: #eff9ff;color: black;}
+.jqueryslidemenu .downarrowclass{ position: absolute; top: 12px; right: 7px; }
+.jqueryslidemenu .rightarrowclass{ position: absolute; top: 6px; right: 5px; }
+

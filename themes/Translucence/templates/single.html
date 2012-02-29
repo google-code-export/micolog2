@@ -1,0 +1,49 @@
+﻿{% extends "base.html" %}
+{% block title %} {{entry.title}} - {{blog.title}} {% endblock %}
+{% block content%}
+{% if entry %}
+<div>		
+	<h2 class="blog_h2"><a href="/{{ entry.link }}" title="Permanent Link to {{entry.title}}">{{entry.title}}</a></h2>		
+	<div class="top_metadata">
+		<div class="comment_count">
+			<a href="/{{entry.link}}#comments">{{entry.commentcount}} person post comments</a>
+		</div>
+		<div class="date_author">
+			post at {{entry.date|datetz:"M j Y"}}
+		</div>	
+	</div>			
+	<div class="entry">
+		{{entry.content}}
+	</div>
+	
+	
+	{%if relateposts%}
+    <h4>relate posts:</h4>
+        <ul style="margin-top:-15px;">
+        {%for post in relateposts%}
+        <li><a href="/{{post.link}}">{{post.title}}</a></li>
+        {%endfor%}
+        </ul>
+    {%endif%}
+			
+	<br class="clearboth" />
+	<div class="bottom_metadata">
+		<span class="tags">
+		    <strong>tag：</strong>
+		    {%for tag in entry.tags%}<em><a href="/tag/{{tag|urlencode}}">{{tag}}</a></em>&nbsp; {%endfor%}
+		</span>
+		<div class="categories">
+		     <strong>article category：</strong>
+		     {%for cate in entry.categories%}<em><a href="/category/{{cate.slug}}">{{cate.name}}</a></em>&nbsp; {%endfor%}
+		</div>
+	</div>				
+</div> <!-- post -->
+
+<div id="comments">
+	{% include "comments.html" %}
+</div>
+{% else %}
+<p>sorry,there is no search result meet your requirements</p>
+{%endif%}
+{% include "sidebar.html" %}
+{% endblock %}

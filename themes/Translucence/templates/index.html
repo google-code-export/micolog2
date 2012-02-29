@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content%}
+{% if entries %}
+{% for entry in entries %}
+<div>
+	<h2 class="blog_h2"><a href="/{{ entry.link }}" title="Permanent Link to {{entry.title}}">{{entry.title}}</a></h2>		
+
+	<div class="top_metadata">
+		<div class="comment_count">
+			<a href="/{{entry.link}}#comments">{{entry.commentcount}} person post their comment</a>
+		</div>
+		<div class="date_author">
+			post at {{entry.date|datetz:"M j Y"}}
+		</div>	
+	</div>
+		
+	<div class="entry">
+		{{entry.content_excerpt}}
+	</div>	
+		
+	<br class="clearboth" />
+
+	<div class="bottom_metadata">
+		<span class="tags">
+		    <strong>tag：</strong>
+		    {%for tag in entry.tags%}<em><a href="/tag/{{tag|urlencode}}">{{tag}}</a></em>&nbsp; {%endfor%}
+		</span>
+		<div class="categories">
+		     <strong>article category：</strong>
+		     {%for cate in entry.categories%}<em><a href="/category/{{cate.slug}}">{{cate.name}}</a></em>&nbsp; {%endfor%}
+		</div>
+	</div>
+						
+</div>
+{% endfor %}
+<div class="blog_navigation">    
+    {% if show_next %}<div class="alignleft"><a href="/page/{{ pageindex|add:"1" }}">&laquo; last page</a></div>{%endif%}
+	{% if show_prev %}<div class="alignright"><a href="/page/{{ pageindex|add:"-1" }}">next page &raquo;</a></div>{%endif%}
+</div>
+{% else %}
+<p>Sorry, that document can not be found.</p>
+{% endif %}
+
+{% include "sidebar.html" %}
+{% endblock %}
+
+

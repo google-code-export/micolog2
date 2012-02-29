@@ -1,0 +1,11 @@
+<li class="{%cycle thread-even,thread-alt %}" id="comment-{{comment.key.id}}">
+		    <div id="div-comment-{{comment.key.id}}" class="comment-body">
+			    <div class="comment-author vcard"> 
+		            <img alt="" src="{{comment.gravatar_url}}" class="avatar avatar-38 photo" height="38" width="38" />		
+		            <cite class="fn"><a href="{{comment.weburl}}" target="_blank" class="url">{{comment.author}}</a></cite> 
+		            <span class="says">comment issue：</span>
+		        </div> 
+		        <div class="comment-meta commentmetadata"><a href="#comment-{{comment.key.id}}" title="">{{comment.date.date|datetz:"M j Y"}} at {{comment.date|datetz:"H:i"}}</a></div> 
+		        <p>{{comment.content}}</p>
+            </div>
+		</li>

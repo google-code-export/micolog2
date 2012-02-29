@@ -1,0 +1,23 @@
+﻿{% extends "base.html" %}
+{% block title %} {{month}},{{year}} - {{blog.title|escape}} {% endblock %}
+{% block content %}
+<div>
+    <h2>search article：{{month}},{{year}}</h2>
+	<ul>
+    {% for entry in entries %}
+    <li> <a href="/{{entry.link}}">{{entry.title}}</a></li>
+    {% endfor %}
+    </ul>
+	<div class="navigation">
+	    {% if pager.prev %}
+	    <div class="alignleft"><a href="?page={{ pager.prev}}">&laquo; last page</a></div>
+	    {% endif %}
+	    {% if pager.next %}
+	    <div class="alignright"><a href="?page={{ pager.next }}">next page &raquo;</a></div>
+	    {% endif %}
+    </div>
+</div>
+{% include "sidebar.html" %}
+{% endblock %}
+
+

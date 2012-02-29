@@ -1,0 +1,31 @@
+﻿{% extends "base.html" %}
+{% block title %} {{entry.title}} - {{blog.title}} {% endblock %}
+{% block head_block %}
+{% if entry %}
+{%if entry.strtags%}<meta name="Keywords" content="{{entry.strtags}}">{%endif%}
+{%if entry.excerpt%} <meta name="Description" content="{{entry.excerpt}}">{%endif%}
+{% endif %}
+{% endblock %}
+{% block content%}
+<div>		
+	<h2 class="blog_h2"><a href="/{{ entry.link }}" title="Permanent Link to {{entry.title}}">{{entry.title}}</a></h2>		
+	<div class="top_metadata">
+		<div class="comment_count">
+			<a href="/{{entry.link}}#comments">{{entry.commentcount}} person post their comments</a>
+		</div>
+		<div class="date_author">
+			post at {{entry.date|datetz:"M j Y"}}
+		</div>	
+	</div>			
+	<div class="entry">
+		{{entry.content}}
+	</div>
+			
+	<br class="clearboth" />		
+</div> <!-- post -->
+
+<div id="comments">
+	{% include "comments.html" %}
+</div>
+{% include "sidebar.html" %}
+{% endblock %}

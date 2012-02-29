@@ -1,0 +1,134 @@
+/*
+Theme Name: Translucence
+Description: Clean and elegant easily customisable theme with 3 built in skins.
+Version: 1.0
+Author: Webtreats ETC
+Author URI: http://webtreats.mysitemyway.com/
+Tags:dark,black,two-columns,right-sidebar,fixed-width,theme-options,sticky-post,threaded-comments
+*/
+
+@import url("mysitemyway-framework.css");
+
+/*  TABLE OF CONTENTS 
+01 - Layout - Structure & Graphics.
+02 - Typography.
+03 - Sidebar & Widgets.
+04 - Blog - Metadata & Post Styles. 
+05 - Threaded Comments. 
+06 - Wordpress Default Classes & IDs. 
+*/
+
+/* ____________________________________________________________________________________ 01 - Layout Structure & Graphics */
+
+/* Dimensions */
+#header{height:100px;}
+#container{width:922px;min-width:922px;}
+#body_block #primary,#footer{width:656px;}
+#body_block #secondary{width:266px;top:-25px;}
+#body_block #primary{top:-45px;}
+#primary .content{margin-left:54px;margin-right:38px;padding:1px;margin-top:0px;overflow:hidden;}
+#secondary .content{margin-right:18px;margin-left:1px;}
+#inner_footer {padding-top:0px;padding-bottom:20px;}
+
+/* Graphics */
+#bg_header{background:url(images/menu.png) repeat-x;min-width:950px;}
+#bg_middle{min-width:950px;}
+#inner_body_block_head{height:87px;background:transparent url(images/content_top.png) top left no-repeat;}
+#body_block{background:transparent url(images/content_middle.png) top left repeat-y;}
+#inner_body_block_foot{background:transparent url(images/content_bottom.png) bottom left no-repeat;height:94px;}
+
+/* Header */
+#header_searchbar{
+	background-image:none;
+	right:64px;
+	top:130px;
+	}
+#header_searchbar #s,#header_searchbar #s:hover{background: 3px center no-repeat transparent url(images/search_white.png); padding-left:18px;border:0px solid transparent;color:#ccc;}
+#main_navigation{font-family:Tahoma,sans-serif;font-size:12px;right:0;text-transform:uppercase;top:0px;}
+#social_media{position:absolute; left:645px;top:40px;}
+.header_socials{display:inline;float:left;}
+
+/* ____________________________________________________________________________________ 02 - Typography */
+
+.blog_h2{font-size:24px;margin-bottom:8px;}
+.blog_h2 a:link,.blog_h2 a:visited{color:#333;}
+#site_name, #site_name a{left:20px;top:38px;font-size:38px;color:#000;}
+#logo{height:80px;left:12px;top:32px;width:260px;}
+#tag_line{left:40px;top:80px;font-size:14px;color:#111;}
+#footer, #footer a:link, #footer a:visited{color:#111;font-weight:bold;}
+#secondary .content{color:#ddd;}
+#secondary .content h4, #secondary .content a:link, #secondary .content a:visited{color:#eee;}
+
+
+
+/* ____________________________________________________________________________________ 03 - Sidebar & Widgets */
+
+.mysite_widget{padding:10px;margin:4px;}
+.mysite_widget h4{font-size:18px;font-weight:normal;margin-bottom:12px;}
+.mysite_widget_divider{background-image:url(images/sidebar-div.png);background-repeat:no-repeat;}
+.mysite_widget ul{list-style:none;margin-left:16px;margin-top:0px;}
+
+/* Calendar Widget */
+#wp-calendar td{background-color:#222;border:1px solid #111;padding:5px;}
+#wp-calendar tr.alt td,#wp-calendar th{background-color:#111;border:1px solid #111;padding:5px;}
+#wp-calendar{width:100%;}
+#wp-calendar tfoot td{background-color:transparent;border:1px solid transparent;padding:5px;}
+
+
+/* ____________________________________________________________________________________ 04 - Blog & Metadata Styles */
+
+.top_metadata{border-top:1px solid #ddd; padding-bottom:20px;color:#999;font-size:12px;}
+.comment_count{background:url('images/comment-bubble.jpg') no-repeat -6px;padding-left:18px;float:left;}
+.comment_count a:link, .comment_count a:visited, .bottom_metadata a:visited, .bottom_metadata a:link{color:#888;}
+.date_author{float:right;}
+.entry{margin:15px 0 0px;font-size:14px;}
+.more_link{background:url(images/readmore.jpg) no-repeat;text-align:center;width:78px;float:right;color:#888;font-size: 10px;padding:4px;}
+.bottom_metadata{border:1px solid #f1f1f1;color:#888;font-size:12px;margin:0px 0 50px;padding:2px;background:url(images/meta-footer.jpg) bottom repeat-x;}
+.categories{margin-top:5px;}
+
+/* Sticky Posts */
+.sticky{border:1px solid #ddd;padding:0 20px 10px;background-color:#f9f9f9;margin:0 0 70px;}
+.sticky .bottom_metadata{margin-bottom:0px;}
+
+/* ____________________________________________________________________________________ 05 - Threaded Comments */
+
+/* Comments */
+#comment_area,#comment{width:90%;}
+h4#comments {clear: both;margin: 45px 0 5px 0;font-size:20px;}
+.commentlist li {font-size: inherit;}
+.commentlist li .avatar { float: left;padding:0px;margin-right:12px;}
+.commentlist cite {font-weight: bold;font-style: normal;font-size: 14px;}
+.commentlist p {font-size:12px;font-weight: normal;margin: 10px 5px 10px 0;padding-top:10px;text-transform: none;}
+.commentmetadata {display: block;font-size: 12px;font-weight: normal;margin: 0;}
+.commentlist .reply {font-size: 0.8em;font-weight: bold;}
+.commentlist {margin: 0 0 20px 0;}
+.commentlist li {margin: 15px 0 10px;padding: 10px;list-style: none;}
+.commentlist li ul li { margin-right: -5px;margin-left: 10px;}
+.cancel-comment-reply{font-size:14px;}
+.comms-navigation, .navigation {clear: both;display: block;margin-bottom: 20px;overflow: hidden;}
+.children {padding: 0;}
+.nocomments {text-align: center;margin: 0;padding: 0;}
+.commentTextBox {font-size:12px; font-family:"Microsoft YaHei",Tahoma,Arial,Helvetica,Sans-Serif;}
+#commentsnavi a,#commentsnavi span{display:block;padding:4px;margin:1px;float:left;border:1px solid #cccccc;text-decoration:none}
+#commentsnavi{clear:both;height:20px; margin-bottom:30px;}
+
+/* Comment Form */
+#respond h4 {clear: both;margin: 20px 0 10px 0;font-size:20px;}
+
+/* Comment List */
+.commentlist li .avatar { border: 2px solid #f2e9ea;}
+.commentlist cite a:link, .commentlist cite a:visited {color: #333;}
+.commentlist .commentmetadata a:link:first-child, .commentlist .commentmetadata a:visited:first-child {color: #333;}
+.thread-alt {background-color: #F9F9F9; border-left: 1px solid #CCCCCC;}
+.thread-even {background-color: #FFFFFF; border-left: 1px solid #CCCCCC;}
+.depth-1 {border-left: 1px solid #CCCCCC;}
+.even, .alt {border-left: 1px solid #CCCCCC;}
+
+/* ____________________________________________________________________________________ 06 - Wordpress Default Classes & IDs */
+
+#page-links a {padding:4px;border:1px solid #ddd;}
+img.alignright, img.alignleft, img.aligncemter{   padding:4px; background-color:#f9f9f9; border:1px solid #ddd;}
+div.alignright,img.alignright,a img.alignright {float:right; margin:0px 0px 0px 20px}
+div.alignleft,img.alignleft,a img.alignleft {float:left; margin:0px 20px 0px 0px;}
+div.aligncenter,img.aligncenter,a img.aligncenter {display: block; margin-left: auto; margin-right: auto}
+.wp-caption{text-align:center;padding-top:4px;border:1px solid #ddd;background-color:#f9f9f9;}
