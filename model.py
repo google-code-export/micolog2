@@ -908,8 +908,9 @@ class Comment(db.Model):
 	#seems no need to update cache in this function
 	def delete(self):
 		db.Model.delete(self)
-		ObjCache.flush_multi(comment_type='ALL', entry_id=self.entry.post_id)
-		ObjCache.flush_multi(comment_type='NORMAL', entry_id=self.entry.post_id)
+		if self.entry is not None:
+			ObjCache.flush_multi(comment_type='ALL', entry_id=self.entry.post_id)
+			ObjCache.flush_multi(comment_type='NORMAL', entry_id=self.entry.post_id)
 		g_blog.tigger_action("delete_comment",self)
 
 	#seems nowhere uses
