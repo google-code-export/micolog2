@@ -1016,7 +1016,7 @@ def InitBlogData():
 	entry.content+=u'<p>Micolog2对主题部分的接口没有任何改动，因此您可以搭配已有的任何Micolog主题。</p>'
 	entry.content+=u'<p>-- Rex</p>'
 	entry.content+=u'<p>有关Micolog2的最新消息： http://micolog2.rexzhao.com</p>'
-	
+	entry.content+=u'<p>作者Rex的个人网站： <a href="http://blog.rexzhao.com">http://blog.rexzhao.com</a></p>'
 	entry.save(True)
 	link=Link(href='http://blog.rexzhao.com',linktext="Rex's blog")
 	link.put()
