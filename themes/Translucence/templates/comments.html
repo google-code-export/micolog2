@@ -1,8 +1,8 @@
 
 <!-- You can start editing here. -->
 
-{% if entry.comments.count%}
-	<h4 id="comments">{{entry.comments.count}} Comments</h4>
+{% if entry.commentcount %}
+	<h4 id="comments">{{entry.commentcount}} Comments</h4>
 	<ol class="commentlist">
 	{% for comment in comments %}
 		<li class="{%cycle thread-even,thread-alt %}" id="comment-{{comment.key.id}}">
