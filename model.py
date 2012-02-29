@@ -853,17 +853,22 @@ class Comment(db.Model):
 		return True
 
 	def delit(self):
-		self.entry.commentcount-=1
-		if self.entry.commentcount<0:
-			self.entry.commentcount = 0
-		if (self.ctype == COMMENT_TRACKBACK) or (self.ctype == COMMENT_PINGBACK):
-			self.entry.trackbackcount-=1
-		if self.entry.trackbackcount<0:
-			self.entry.trackbackcount = 0
-		self.entry.put()
+		if self.entry is not None:
+			self.entry.commentcount-=1
+			if self.entry.commentcount<0:
+				self.entry.commentcount = 0
+			if (self.ctype == COMMENT_TRACKBACK) or (self.ctype == COMMENT_PINGBACK):
+				self.entry.trackbackcount-=1
+			if self.entry.trackbackcount<0:
+				self.entry.trackbackcount = 0
+			self.entry.put()
 		self.delete()
 
-		#update cache
+		if self.entry is None:#if entry is None, only update the following two cache
+			ObjCache.update_basic_info(update_comments=True)
+			ObjCache.flush_multi(is_htmlpage=True,is_aggregation=True)
+			return
+		#update cache when entry is not None
 		comment_count = ObjCache.get(comment_type='ALL',is_count=True,entry_id=self.entry.post_id)
 		if comment_count is not None:
 			count = ObjCache.get_cache_value(comment_count.cache_key)
