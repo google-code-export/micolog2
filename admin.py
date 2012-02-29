@@ -661,7 +661,8 @@ class admin_comments(BaseRequestHandler):
 			for key in linkcheck:
 				comment=Comment.get(key)
 				comment.delit()
-				entrykeys.append(comment.entry.key())
+				if comment.entry is not None:
+					entrykeys.append(comment.entry.key())
 			entrykeys=set(entrykeys)
 			for key in entrykeys:
 				e=Entry.get(key)
