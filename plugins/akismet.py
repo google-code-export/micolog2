@@ -53,7 +53,7 @@ class akismet(Plugin):
 		m = AkismetManager(apikey,url)
 		if m.IsSpam(AkismetItem):
 			if rm==True:
-				raise ''
+				raise Exception
 			sComments=OptionSet.getValue("Akismet_Comments_v0.3",[])
 			if type(sComments)!=type([]):
 				sComments=[]
